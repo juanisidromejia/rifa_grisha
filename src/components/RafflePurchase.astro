@@ -1,0 +1,151 @@
+<section class="raffle-purchase-section">
+    <h2>¡Participa en la Rifa!</h2>
+    <p>Para adquirir tus números de rifa y participar por la guitarra de concierto, sigue estos sencillos pasos:</p>
+
+    <div class="purchase-steps">
+        <div class="step">
+            <span class="step-number">1</span>
+            <h3>Registra tu correo electrónico</h3>
+            <p>Ingresa tu correo para que podamos enviarte los detalles del depósito y tus números de rifa.</p>
+            <form id="email-registration-form">
+                <input type="email" placeholder="tu-correo@ejemplo.com" required aria-label="Correo electrónico" />
+                <button type="submit">Registrar Correo</button>
+            </form>
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span>
+            <h3>Realiza tu Depósito</h3>
+            <p>Una vez registrado tu correo, te enviaremos los datos necesarios para que realices tu depósito de forma segura.</p>
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span>
+            <h3>Confirmación y Números de Rifa</h3>
+            <p>Tras confirmar tu depósito internamente, recibirás <strong>dos números de rifa únicos</strong> directamente en tu correo electrónico. ¡Mucha suerte!</p>
+        </div>
+    </div>
+
+    <p class="data-storage-note">Tus datos de contacto y números de rifa serán guardados de forma segura en una base de datos, usando el servidor de Vercel.</p>
+</section>
+
+<style>
+    .raffle-purchase-section {
+        background-color: #ffffff; /* Fondo blanco */
+        padding: 2.5rem;
+        margin: 2rem auto;
+        max-width: 900px;
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+        text-align: center;
+        font-family: sans-serif;
+        color: #333;
+    }
+
+    .raffle-purchase-section h2 {
+        color: #764ba2;
+        font-size: 2.4rem;
+        margin-bottom: 2rem;
+    }
+
+    .raffle-purchase-section p {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+
+    .purchase-steps {
+        display: flex;
+        flex-wrap: wrap; /* Permite que los pasos se envuelvan en pantallas pequeñas */
+        justify-content: center;
+        gap: 1.5rem; /* Espacio entre los pasos */
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .step {
+        flex: 1; /* Permite que cada paso ocupe espacio equitativamente */
+        min-width: 280px; /* Ancho mínimo para cada paso */
+        background-color: #eef4f9; /* Fondo suave para cada paso */
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #dcdcdc;
+        position: relative;
+        padding-top: 3.5rem; /* Espacio para el número del paso */
+    }
+
+    .step-number {
+        position: absolute;
+        top: -20px; /* Lo saca del recuadro del paso */
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #667eea; /* Color de acento */
+        color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .step h3 {
+        color: #667eea;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .step form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-top: 1.5rem;
+    }
+
+    .step input[type="email"] {
+        padding: 0.8rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1rem;
+        width: 100%;
+        box-sizing: border-box; /* Incluir padding y border en el width */
+    }
+
+    .step button {
+        background-color: #764ba2;
+        color: white;
+        padding: 0.9rem 1.5rem;
+        border: none;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        width: 100%;
+    }
+
+    .step button:hover {
+        background-color: #6a3e90;
+    }
+
+    .data-storage-note {
+        font-size: 0.95rem;
+        color: #666;
+        margin-top: 2rem;
+        font-style: italic;
+    }
+
+    /* Media Queries para responsividad */
+    @media (max-width: 768px) {
+        .purchase-steps {
+            flex-direction: column;
+            align-items: center;
+        }
+        .step {
+            min-width: unset; /* Quita el ancho mínimo para que se ajuste mejor */
+            width: 90%; /* Ocupa casi todo el ancho disponible */
+        }
+    }
+</style>
