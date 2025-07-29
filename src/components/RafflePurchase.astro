@@ -5,18 +5,14 @@
     <div class="purchase-steps">
         <div class="step">
             <span class="step-number">1</span>
-            <h3>Registra tu correo electrónico</h3>
-            <p>Ingresa tu correo para que podamos enviarte los detalles del depósito y tus números de rifa.</p>
-            <form id="email-registration-form">
-                <input type="email" placeholder="tu-correo@ejemplo.com" required aria-label="Correo electrónico" />
-                <button type="submit">Registrar Correo</button>
-            </form>
+            <h3>Regístrate en la página principal</h3>
+            <p>Asegúrate de haber registrado tu correo electrónico en la sección de registro para que podamos enviarte los detalles del depósito y tus números de rifa.</p>
         </div>
 
         <div class="step">
             <span class="step-number">2</span>
             <h3>Realiza tu Depósito</h3>
-            <p>Una vez registrado tu correo, te enviaremos los datos necesarios para que realices tu depósito de forma segura.</p>
+            <p>Una vez registrado, te proporcionaremos los datos necesarios para que realices tu depósito de forma segura.</p>
         </div>
 
         <div class="step">
@@ -68,8 +64,7 @@
         min-width: 280px; /* Ancho mínimo para cada paso */
         background-color: #eef4f9; /* Fondo suave para cada paso */
         padding: 1.5rem;
-        border-radius: 8px;
-        border: 1px solid #dcdcdc;
+        border-radius: 8px;\n        border: 1px solid #dcdcdc;
         position: relative;
         padding-top: 3.5rem; /* Espacio para el número del paso */
     }
@@ -98,6 +93,7 @@
         margin-bottom: 1rem;
     }
 
+    /* Estos estilos ya no son necesarios sin el formulario en este componente, pero los dejo por si acaso */
     .step form {
         display: flex;
         flex-direction: column;
