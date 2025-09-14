@@ -38,12 +38,12 @@ if (
                 background: #fff;
                 border-radius: 8px;
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                text-align: center;
             }
             h1 {
                 color: #764ba2;
                 font-size: 2.5rem;
                 margin-bottom: 30px;
+                text-align: center;
             }
             .dashboard-section {
                 background-color: #eef4f9;
@@ -94,7 +94,7 @@ if (
                 padding: 30px;
                 background: #fff;
                 border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 text-align: center;
             }
             .login-container h2 {
@@ -240,16 +240,35 @@ if (
                         });
                         actionsCell.appendChild(confirmButton);
 
-                        // Send Raffle Link Button // ADD FROM HERE
+                        // Send Raffle Link Button
                         const sendRaffleLinkButton =
                             document.createElement("button");
                         sendRaffleLinkButton.textContent = "Enviar Rifas";
                         sendRaffleLinkButton.className = "send";
                         sendRaffleLinkButton.dataset.userId = user.id;
-                        sendRaffleLinkButton.addEventListener("click", () => {
-                            // Add this, with the user.id
-                            sendRaffleNumbers(user.id); // Call with the userId
-                        });
+                        sendRaffleLinkButton.addEventListener(
+                            "click",
+                            async () => {
+                                const cantidadRifas = prompt(
+                                    "Ingresa la cantidad de rifas a enviar:",
+                                    "2",
+                                );
+                                if (
+                                    cantidadRifas !== null &&
+                                    !isNaN(Number(cantidadRifas)) &&
+                                    Number(cantidadRifas) > 0 &&
+                                    Number(cantidadRifas) % 2 === 0
+                                ) {
+                                    sendRaffleNumbers(user.id, cantidadRifas);
+                                } else {
+                                    alert(
+                                        "Por favor, ingresa una cantidad válida de rifas (múltiplo de 2).",
+                                    );
+                                }
+
+                                // Future: Generate and send unique link
+                            },
+                        );
                         actionsCell.appendChild(sendRaffleLinkButton);
                     });
                 } catch (error) {
@@ -286,52 +305,30 @@ if (
             }
 
             // Function to send raffle numbers
-            async function sendRaffleNumbers(userId) {
-                const cantidadRifas = prompt(
-                    "Ingresa la cantidad de rifas a enviar:",
-                    "2",
-                );
-                if (
-                    cantidadRifas !== null &&
-                    !isNaN(Number(cantidadRifas)) &&
-                    Number(cantidadRifas) > 0
-                ) {
-                    try {
-                        const response = await fetch(
-                            "/api/admin/send-raffles",
-                            {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    userId,
-                                    cantidadRifas: parseInt(cantidadRifas, 10),
-                                }), // Include cantidadRifas
-                            },
-                        );
+            async function sendRaffleNumbers(userId, cantidadRifas) {
+                try {
+                    const response = await fetch("/api/admin/send-raffles", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ userId, cantidadRifas }), // Include cantidadRifas
+                    });
 
-                        const data = await response.json();
+                    const data = await response.json();
 
-                        if (response.ok) {
-                            alert("Números de rifa enviados con éxito.");
-                            // Puedes agregar lógica para actualizar el estado del usuario o mostrar un mensaje.
-                        } else {
-                            alert("Error al enviar los números de rifa.");
-                        }
-                    } catch (error) {
-                        console.error(
-                            "Error al enviar los números de rifa:",
-                            error,
-                        );
-                        alert(
-                            "Ocurrió un error al enviar los números de rifa.",
-                        );
+                    if (response.ok) {
+                        alert("Números de rifa enviados con éxito.");
+                        // Puedes agregar lógica para actualizar el estado del usuario o mostrar un mensaje.
+                    } else {
+                        alert("Error al enviar los números de rifa.");
                     }
-                } else {
-                    alert(
-                        "Por favor, ingresa una cantidad válida de rifas (múltiplo de 2).",
+                } catch (error) {
+                    console.error(
+                        "Error al enviar los números de rifa:",
+                        error,
                     );
+                    alert("Ocurrió un error al enviar los números de rifa.");
                 }
             }
 

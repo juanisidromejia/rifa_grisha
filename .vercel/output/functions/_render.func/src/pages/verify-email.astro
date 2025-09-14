@@ -1,0 +1,228 @@
+---
+import HeaderGrisha from "../components/HeaderGrisha.astro";
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Rifa Grisha - Verificar Correo</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f4;
+                color: #333;
+            }
+            main {
+                max-width: 600px;
+                margin: 50px auto;
+                padding: 30px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+            h1 {
+                color: #764ba2;
+                margin-bottom: 20px;
+            }
+            p {
+                margin-bottom: 15px;
+                font-size: 1.1rem;
+            }
+            form {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin-top: 30px;
+                align-items: center;
+            }
+            input[type="text"] {
+                padding: 12px 15px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                width: 100%;
+                max-width: 250px;
+                font-size: 1.2rem;
+                text-align: center;
+            }
+            button {
+                padding: 12px 30px;
+                background-color: #28a745;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1.1rem;
+                transition: background-color 0.3s ease;
+            }
+            button:hover {
+                background-color: #218838;
+            }
+            .message {
+                margin-top: 20px;
+                padding: 10px;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            .message.success {
+                background-color: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            .message.error {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            .small-text {
+                font-size: 0.9em;
+                color: #666;
+                margin-top: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <HeaderGrisha />
+        <main>
+            <h1>Verifica tu Correo Electrónico</h1>
+            <p id="initial-message">Estamos verificando tu correo...</p>
+
+            <form id="verification-form" style="display:none;">
+                <label for="code">Código de Verificación:</label>
+                <input
+                    type="text"
+                    id="code"
+                    name="code"
+                    required
+                    minlength="6"
+                    maxlength="6"
+                    pattern="[0-9]{6}"
+                    placeholder="Ej: 123456"
+                />
+                <button type="submit">Verificar Código Manualmente</button>
+            </form>
+
+            <div id="form-message" class="message" style="display:none;"></div>
+
+            <p id="manual-prompt" class="small-text" style="display:none;">
+                Si el proceso automático no funciona, ingresa el código
+                manualmente.
+            </p>
+        </main>
+
+        <script is:inline>
+            function getUrlParameter(name) {
+                name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+                var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+                var results = regex.exec(location.search);
+                return results === null
+                    ? ""
+                    : decodeURIComponent(results[1].replace(/\+/g, " "));
+            }
+
+            async function verifyEmail(email, code) {
+                const formMessage = document.getElementById("form-message");
+                formMessage.style.display = "none";
+                formMessage.classList.remove("success", "error");
+                formMessage.textContent = "";
+
+                try {
+                    const response = await fetch("/api/verify-email", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ email, code }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        formMessage.textContent =
+                            data.message || "Código verificado con éxito.";
+                        formMessage.className = "message success";
+
+                        // Redirigir al usuario al siguiente paso (ej. instrucciones de pago)
+                        if (data.redirectTo) {
+                            setTimeout(() => {
+                                window.location.href = data.redirectTo;
+                            }, 1500); // Pequeño retraso
+                        } else {
+                            // Fallback si no hay redirección (inesperado, pero seguro)
+                            formMessage.textContent +=
+                                " Por favor, dirígete a la página de inicio.";
+                            setTimeout(() => {
+                                window.location.href = "/";
+                            }, 2000);
+                        }
+                    } else {
+                        formMessage.textContent =
+                            data.message ||
+                            "Hubo un error al verificar el código.";
+                        formMessage.className = "message error";
+                    }
+                } catch (error) {
+                    console.error(
+                        "Error al enviar el formulario de verificación:",
+                        error,
+                    );
+                    formMessage.textContent =
+                        "Ocurrió un error de conexión. Inténtalo de nuevo más tarde.";
+                    formMessage.className = "message error";
+                } finally {
+                    formMessage.style.display = "block";
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", async () => {
+                const urlEmail = getUrlParameter("email");
+                const urlCode = getUrlParameter("code");
+                const initialMessage =
+                    document.getElementById("initial-message");
+                const verificationForm =
+                    document.getElementById("verification-form");
+                const manualPrompt = document.getElementById("manual-prompt");
+
+                if (urlEmail && urlCode) {
+                    initialMessage.textContent = `Verificando ${urlEmail}...`;
+                    await verifyEmail(urlEmail, urlCode);
+                    // Después de la verificación, el mensaje y la redirección se manejarán dentro de verifyEmail()
+                } else {
+                    // Mostrar formulario manual si no hay URL params
+                    initialMessage.textContent =
+                        "Por favor, ingresa el código de verificación que recibiste por correo.";
+                    verificationForm.style.display = "flex";
+                    manualPrompt.style.display = "block";
+                }
+
+                // Configurar el listener del formulario manual (para reintentos o entrada manual)
+                verificationForm.addEventListener("submit", async (event) => {
+                    event.preventDefault();
+                    const codeInput = document.getElementById("code");
+                    const verificationCode = codeInput.value;
+
+                    // Si el email no está en la URL, se espera que el usuario lo tenga del correo
+                    // En un sistema real, quizás pedirías el email también en el formulario manual
+                    // Por ahora, si no hay email en URL y no lo hemos pedido, re-redirigir
+                    if (!urlEmail) {
+                        document.getElementById("form-message").textContent =
+                            "Error: No se pudo identificar tu correo. Por favor, vuelve a la página principal para registrarte.";
+                        document.getElementById("form-message").className =
+                            "message error";
+                        document.getElementById("form-message").style.display =
+                            "block";
+                        return;
+                    }
+
+                    await verifyEmail(urlEmail, verificationCode);
+                });
+            });
+        </script>
+    </body>
+</html>
