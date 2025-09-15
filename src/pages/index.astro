@@ -118,11 +118,76 @@ import RafflePurchase from "../components/RafflePurchase.astro";
                 color: #721c24;
                 border: 1px solid #f5c6cb;
             }
+
+            /* Development Warning Styles */
+            .development-warning {
+                background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+                color: white;
+                padding: 15px 20px;
+                margin: 20px 0;
+                border-radius: 8px;
+                text-align: center;
+                font-weight: bold;
+                font-size: 1.1rem;
+                box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+                border: 2px solid #ff4757;
+                animation: pulse 2s infinite;
+            }
+
+            .warning-content {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .warning-icon {
+                font-size: 1.5rem;
+                animation: bounce 1s infinite alternate;
+            }
+
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.02); }
+                100% { transform: scale(1); }
+            }
+
+            @keyframes bounce {
+                0% { transform: translateY(0); }
+                100% { transform: translateY(-5px); }
+            }
+
+            @media (max-width: 768px) {
+                .development-warning {
+                    font-size: 1rem;
+                    padding: 12px 15px;
+                    margin: 15px 0;
+                }
+
+                .warning-content {
+                    flex-direction: column;
+                    gap: 8px;
+                }
+
+                .warning-icon {
+                    font-size: 1.3rem;
+                }
+            }
         </style>
     </head>
     <body>
         <HeaderGrisha />
         <main>
+            <!-- Development Warning Banner -->
+            <div class="development-warning">
+                <div class="warning-content">
+                    <span class="warning-icon">⚠️</span>
+                    <strong>AVISO IMPORTANTE:</strong> Esta es una versión de desarrollo. La rifa oficial aún no está disponible.
+                    <span class="warning-icon">⚠️</span>
+                </div>
+            </div>
+
             <RaffleDetails />
             <ImageGallery
                 title="Galería de la Guitarra Grisha"
