@@ -35,7 +35,10 @@ export const prerender = false;
 
 export const POST = async ({ request }) => {
   try {
+    console.log("API called: register-email");
+
     const { email } = await request.json();
+    console.log("Email received:", email);
 
     if (!email) {
       return new Response(
@@ -47,10 +50,18 @@ export const POST = async ({ request }) => {
       );
     }
 
+    // Check environment variables
+    console.log("Environment check:");
+    console.log("NODE_ENV:", process.env.NODE_ENV);
+    console.log("GMAIL_APP_USER:", process.env.GMAIL_APP_USER ? "Set" : "Not set");
+    console.log("GMAIL_APP_PASSWORD:", process.env.GMAIL_APP_PASSWORD ? "Set" : "Not set");
+
     // Comprobar si el correo ya existe
+    console.log("Checking for existing user...");
     const existingUser = await prisma.user.findUnique({
       where: { email: email },
     });
+    console.log("Existing user found:", !!existingUser);
 
     if (existingUser && existingUser.status !== "email_pending_verification") {
       // Si el usuario ya existe y no está pendiente de verificación (ya verificado, pagado, etc.)

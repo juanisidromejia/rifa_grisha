@@ -15,13 +15,13 @@ const {
   interval = 4000
 } = Astro.props;
 
-// Default images from carrousel folder - add your images to assets/carrousel/ folder
-// Any image placed in assets/carrousel/ will automatically appear in the carousel
+// Default images - using available images or fallback placeholders
 const defaultImages = [
-  "/assets/carrousel/guitar-1.jpg",
-  "/assets/carrousel/guitar-2.jpg",
-  "/assets/carrousel/guitar-3.jpg",
-  "/assets/carrousel/guitar-4.jpg"
+  "/img/grisha.jpeg", // Use the available Grisha image
+  "/favicon.jpeg",    // Use the available favicon
+  // Fallback to placeholder images if needed
+  "https://via.placeholder.com/600x400/764ba2/ffffff?text=Guitarra+1",
+  "https://via.placeholder.com/600x400/667eea/ffffff?text=Guitarra+2"
 ];
 
 // Use manual images if provided, otherwise use default images from carrousel folder
