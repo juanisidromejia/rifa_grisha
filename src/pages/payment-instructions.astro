@@ -108,6 +108,86 @@ import HeaderGrisha from "../components/HeaderGrisha.astro";
             .home-button:hover {
                 background-color: #6a3e90;
             }
+            .send-payment-data {
+                text-align: center;
+                margin: 30px 0;
+            }
+            .send-data-button {
+                background-color: #28a745;
+                color: white;
+                padding: 12px 25px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1.1rem;
+                transition: background-color 0.3s ease;
+            }
+            .send-data-button:hover {
+                background-color: #218838;
+            }
+            /* Modal Styles */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(2px);
+            }
+            .modal-content {
+                background-color: #fff;
+                margin: 20% auto;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                width: 90%;
+                max-width: 400px;
+                position: relative;
+                text-align: center;
+            }
+            .close-button {
+                position: absolute;
+                top: 10px;
+                right: 15px;
+                color: #aaa;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .close-button:hover {
+                color: #000;
+            }
+            .modal-content h3 {
+                margin-bottom: 15px;
+                font-size: 1.5rem;
+            }
+            .modal-content h3.success-title {
+                color: #28a745;
+            }
+            .modal-content h3.error-title {
+                color: #dc3545;
+            }
+            .modal-content p {
+                margin-bottom: 20px;
+                line-height: 1.5;
+                color: #333;
+            }
+            .modal-close-btn {
+                background-color: #dc3545;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: background-color 0.3s;
+            }
+            .modal-close-btn:hover {
+                background-color: #c82333;
+            }
         </style>
     </head>
     <body>
@@ -128,36 +208,48 @@ import HeaderGrisha from "../components/HeaderGrisha.astro";
             <h2>Opciones de Pago</h2>
             <ul>
                 <li>
-                    <strong>Transferencia Bancaria:</strong>
-                    <p>Banco: [Nombre de tu Banco]</p>
-                    <p>Cuenta No.: [Número de Cuenta]</p>
-                    <p>Tipo de Cuenta: [Ahorros/Corriente]</p>
-                    <p>Beneficiario: [Tu Nombre/Razón Social]</p>
-                    <p>C.I./RUC: [Tu Cédula/RUC]</p>
+                    <strong>Banco Pichincha (Ahorros):</strong>
+                    <p>Cuenta No.: 2201988107</p>
+                    <p>A nombre de: Juan Isidro Mejía</p>
+                    <p>C.I.: 0919315218</p>
+                    <p>Email: juanisidromejia@gmail.com</p>
                 </li>
                 <li>
-                    <strong>Deuna / Peigo (Ecuador):</strong>
-                    <p>Alias o Número: [Tu Alias o Número de Deuna/Peigo]</p>
-                    <p>
-                        Puedes escanear este QR (si lo tienes alojado online,
-                        inserta aquí la imagen con <img
-                            src="/tu-qr.png"
-                            alt="Código QR Deuna/Peigo"
-                            style="max-width: 150px; display: block; margin-top: 10px;"
-                        /> o indica al usuario que lo solicite por WhatsApp).
-                    </p>
+                    <strong>Banco Produbanco (Ahorros):</strong>
+                    <p>Cuenta No.: 12179042454</p>
+                    <p>A nombre de: Nadiia Pavliuk</p>
+                    <p>C.I.: 0952061414</p>
+                    <p>Email: juanisidromejia@gmail.com</p>
                 </li>
                 <li>
-                    <strong>PayPhone:</strong>
-                    <p>Link de Pago: [Tu enlace de PayPhone]</p>
+                    <strong>Banco Guayaquil (Ahorros):</strong>
+                    <p>Cuenta No.: 0132383827</p>
+                    <p>A nombre de: Juan Isidro Mejia Peña</p>
+                    <p>C.I.: 0919315218</p>
+                    <p>Email: juanisidromejia@gmail.com</p>
                 </li>
                 <li>
                     <strong>PayPal:</strong>
-                    <p>
-                        Enlace PayPal: [Tu enlace de PayPal.Me o correo PayPal]
-                    </p>
+                    <p>Enlace: <a href="https://paypal.me/juanisidroguitar" target="_blank">https://paypal.me/juanisidroguitar</a></p>
+                </li>
+                <li>
+                    <strong>PayPhone:</strong>
+                    <p>Link de Pago: <a href="https://ppls.me/Iz6DkdH4Zb7AdhE74Te6NA" target="_blank">https://ppls.me/Iz6DkdH4Zb7AdhE74Te6NA</a></p>
+                    <img src="/img/payphone.jpeg" alt="QR PayPhone" style="max-width: 150px; display: block; margin-top: 10px;" />
+                </li>
+                <li>
+                    <strong>Deuna:</strong>
+                    <img src="/img/deuna.jpeg" alt="QR Deuna" style="max-width: 150px; display: block; margin-top: 10px;" />
+                </li>
+                <li>
+                    <strong>Peigo:</strong>
+                    <img src="/img/peigo.jpeg" alt="QR Peigo" style="max-width: 150px; display: block; margin-top: 10px;" />
                 </li>
             </ul>
+
+            <div class="send-payment-data">
+                <button id="send-payment-data-btn" class="send-data-button">Enviar Datos de Pago por Correo</button>
+            </div>
 
             <div class="whatsapp-contact">
                 <p>
@@ -194,7 +286,45 @@ import HeaderGrisha from "../components/HeaderGrisha.astro";
 
             <a href="/" class="home-button">Volver al Inicio</a>
         </main>
+
+        <!-- Message Modal -->
+        <div id="message-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3 id="modal-title">Mensaje</h3>
+                <p id="modal-message"></p>
+                <button id="modal-close-btn" class="modal-close-btn">Aceptar</button>
+            </div>
+        </div>
         <script is:inline>
+            // Modal elements
+            const messageModal = document.getElementById('message-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const closeButton = document.querySelector('.close-button');
+
+            // Modal functions
+            function showModal(message, type = 'error') {
+                modalMessage.textContent = message;
+                modalTitle.textContent = type === 'success' ? '¡Excelente!' : 'Error';
+                modalTitle.className = type === 'success' ? 'success-title' : 'error-title';
+                messageModal.style.display = 'block';
+            }
+
+            function hideModal() {
+                messageModal.style.display = 'none';
+            }
+
+            // Modal event listeners
+            modalCloseBtn.addEventListener('click', hideModal);
+            closeButton.addEventListener('click', hideModal);
+            window.addEventListener('click', (event) => {
+                if (event.target === messageModal) {
+                    hideModal();
+                }
+            });
+
             document.addEventListener("DOMContentLoaded", () => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const userEmail = urlParams.get("email");
@@ -217,6 +347,38 @@ import HeaderGrisha from "../components/HeaderGrisha.astro";
                 } else if (whatsappNoteText) {
                     whatsappNoteText.textContent =
                         "Para que podamos identificarte rápidamente, por favor, incluye tu correo electrónico en el mensaje de WhatsApp.";
+                }
+
+                // Send payment data button
+                const sendPaymentDataBtn = document.getElementById('send-payment-data-btn');
+                if (sendPaymentDataBtn) {
+                    sendPaymentDataBtn.addEventListener('click', async () => {
+                        if (!userEmail) {
+                            showModal("No se pudo obtener tu correo electrónico. Por favor, verifica que hayas accedido correctamente a esta página.", "error");
+                            return;
+                        }
+
+                        try {
+                            const response = await fetch("/api/send-payment-data", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({ email: userEmail }),
+                            });
+
+                            const data = await response.json();
+
+                            if (response.ok) {
+                                showModal("Los datos de pago han sido enviados a tu correo electrónico.", "success");
+                            } else {
+                                showModal(data.message || "Error al enviar los datos de pago.", "error");
+                            }
+                        } catch (error) {
+                            console.error("Error sending payment data:", error);
+                            showModal("Ocurrió un error al enviar los datos de pago.", "error");
+                        }
+                    });
                 }
             });
         </script>

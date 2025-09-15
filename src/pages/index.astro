@@ -45,6 +45,7 @@ import RafflePurchase from "../components/RafflePurchase.astro";
                 gap: 15px;
             }
             .registration-section input[type="email"],
+            .registration-section input[type="number"],
             button {
                 padding: 12px 15px;
                 border: 1px solid #ccc;
@@ -52,6 +53,17 @@ import RafflePurchase from "../components/RafflePurchase.astro";
                 width: 100%;
                 max-width: 350px;
                 font-size: 1rem;
+            }
+            #captcha-section {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            #captcha-section label {
+                font-weight: bold;
+                color: #333;
             }
             .registration-section button {
                 background-color: #28a745;
@@ -126,6 +138,16 @@ import RafflePurchase from "../components/RafflePurchase.astro";
                         placeholder="tu@correo.com"
                         required
                     />
+                    <div id="captcha-section">
+                        <label for="captcha">Resuelve esta suma para verificar: <span id="captcha-question"></span></label>
+                        <input
+                            type="number"
+                            id="captcha"
+                            name="captcha"
+                            placeholder="Resultado"
+                            required
+                        />
+                    </div>
                     <button type="submit">Registrarme</button>
                     <div
                         id="form-message"
@@ -135,40 +157,43 @@ import RafflePurchase from "../components/RafflePurchase.astro";
                     </div>
                 </form>
 
-                <div class="whatsapp-link">
-                    <p>¿Prefieres comunicarte por WhatsApp?</p>
-                    <a
-                        id="whatsapp-link-landing"
-                        href="https://wa.me/+593981985015?text=Hola!%20Quiero%20registrarme%20para%20la%20rifa."
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <img
-                            src="/whatsapp-icon.svg"
-                            alt="WhatsApp Icon"
-                            class="whatsapp-icon"
-                        />
-                        Enviar mensaje por WhatsApp
-                    </a>
-                    <p class="small-text">
-                        (Haz clic para enviarnos un mensaje y te ayudaremos con
-                        el registro)
-                    </p>
-                </div>
             </section>
         </main>
 
         <script is:inline>
+            // Generate captcha on page load
+            function generateCaptcha() {
+                const num1 = Math.floor(Math.random() * 10) + 1;
+                const num2 = Math.floor(Math.random() * 10) + 1;
+                const question = `${num1} + ${num2}`;
+                const answer = num1 + num2;
+                document.getElementById("captcha-question").textContent = question;
+                return answer;
+            }
+
+            let captchaAnswer = generateCaptcha();
+
             document
                 .getElementById("registration-form")
                 .addEventListener("submit", async (e) => {
                     e.preventDefault();
                     const emailInput = document.getElementById("email");
+                    const captchaInput = document.getElementById("captcha");
                     const formMessage = document.getElementById("form-message");
-                    const whatsappLinkElement = document.getElementById("whatsapp-link-landing"); // Get the WhatsApp link element
-                    const email = emailInput.value; // Capture email before clearing input
+                    const email = emailInput.value;
+                    const captchaValue = parseInt(captchaInput.value);
 
                     formMessage.style.display = "none"; // Ocultar mensaje anterior
+
+                    // Check captcha
+                    if (captchaValue !== captchaAnswer) {
+                        formMessage.textContent = "Captcha incorrecto. Inténtalo de nuevo.";
+                        formMessage.className = "message error";
+                        formMessage.style.display = "block";
+                        captchaAnswer = generateCaptcha(); // Regenerate captcha
+                        captchaInput.value = "";
+                        return;
+                    }
 
                     try {
                         const response = await fetch("/api/register-email", {
@@ -185,15 +210,8 @@ import RafflePurchase from "../components/RafflePurchase.astro";
                             formMessage.textContent = data.message; // Mostrar mensaje de éxito desde la API
                             formMessage.className = "message success";
                             emailInput.value = ""; // Limpiar campo
-
-                            // Update WhatsApp link with the registered email
-                            if (whatsappLinkElement) {
-                                const initialText = "Hola!%20Soy%20";
-                                const encodedEmail = encodeURIComponent(email);
-                                const remainingText = "%20y%20quiero%20registrarme%20para%20la%20rifa.";
-                                whatsappLinkElement.href = `https://wa.me/+593981985015?text=${initialText}${encodedEmail}${remainingText}`;
-                            }
-
+                            captchaInput.value = ""; // Limpiar captcha
+                            captchaAnswer = generateCaptcha(); // Regenerate for next time
                         } else {
                             formMessage.textContent =
                                 data.message || "Hubo un error en el registro.";

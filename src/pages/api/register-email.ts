@@ -105,7 +105,7 @@ export const POST = async ({ request }) => {
         <p style="font-size: 1.1em; font-weight: bold;">
           <a href="${baseUrl}/verify-email?email=${encodeURIComponent(user.email)}&code=${verificationCode}" style="color: #007bff; text-decoration: none;">Activar mi cuenta ahora</a>
         </p>
-        <p>Este enlace es válido por 15 minutos. Si el enlace no funciona, puedes usar el código <strong>${verificationCode}</strong> directamente en la página de verificación.</p>
+        <p>Este enlace es válido por 15 minutos. Si el enlace no funciona, copia el enlace y pégalo en tu navegador.</p>
         <p>Si no te registraste para la rifa, por favor, ignora este correo.</p>
         <p>Atentamente,<br>El equipo de Rifa por Grisha</p>
       `,
