@@ -1,6 +1,6 @@
-import { c as createComponent, a as createAstro, r as renderTemplate, b as renderComponent, d as renderHead, e as addAttribute } from '../chunks/astro/server_CDjB31Lh.mjs';
+import { c as createComponent, a as createAstro, r as renderTemplate, b as renderComponent, d as renderHead, e as addAttribute } from '../chunks/astro/server_glwSNO0I.mjs';
 import 'kleur/colors';
-import { $ as $$HeaderGrisha } from '../chunks/HeaderGrisha_5DuKFRQu.mjs';
+import { $ as $$HeaderGrisha } from '../chunks/HeaderGrisha_BcwAkHIV.mjs';
 /* empty css                                        */
 export { renderers } from '../renderers.mjs';
 

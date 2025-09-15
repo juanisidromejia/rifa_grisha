@@ -36,6 +36,10 @@
 			"dest": "_render"
 		},
 		{
+			"src": "^/api/admin/congratulate-winner/?$",
+			"dest": "_render"
+		},
+		{
 			"src": "^/api/admin/login/?$",
 			"dest": "_render"
 		},
@@ -65,6 +69,10 @@
 		},
 		{
 			"src": "^/api/save=raffle-numbers/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/send-payment-data/?$",
 			"dest": "_render"
 		},
 		{

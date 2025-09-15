@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 export { renderers } from '../../../renderers.mjs';
 
@@ -12,9 +11,6 @@ if (process.env.NODE_ENV === "production") {
   }
   prisma = global.prisma;
 }
-function generateToken(length = 32) {
-  return crypto.randomBytes(Math.ceil(length / 2)).toString("hex").slice(0, length);
-}
 const POST = async ({ request, cookies }) => {
   try {
     const isAuthenticated = cookies.has("admin_session");
@@ -24,15 +20,62 @@ const POST = async ({ request, cookies }) => {
         headers: { "Content-Type": "application/json" }
       });
     }
-    const { userId } = await request.json();
+    const { userId, cantidadRifas, raffleNumbers } = await request.json();
     if (!userId) {
-      return new Response(
-        JSON.stringify({ message: "ID de usuario requerido." }),
-        {
+      return new Response(JSON.stringify({ message: "Usuario requerido." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    let selectedRaffleNumbers = [];
+    if (raffleNumbers && Array.isArray(raffleNumbers)) {
+      selectedRaffleNumbers = raffleNumbers.map((num) => String(num).padStart(3, "0"));
+      const existingRaffleNumbers = (await prisma.user.findMany({
+        where: { raffleNumbers: { isEmpty: false } },
+        select: { raffleNumbers: true }
+      })).flatMap((user2) => user2.raffleNumbers);
+      const unavailable = selectedRaffleNumbers.filter((num) => existingRaffleNumbers.includes(num));
+      if (unavailable.length > 0) {
+        return new Response(JSON.stringify({ message: `Números no disponibles: ${unavailable.join(", ")}` }), {
           status: 400,
           headers: { "Content-Type": "application/json" }
-        }
+        });
+      }
+    } else if (cantidadRifas && !isNaN(Number(cantidadRifas)) && Number(cantidadRifas) > 0) {
+      const allRaffleNumbers = Array.from(
+        { length: 999 },
+        (_, i) => String(i + 1).padStart(3, "0")
       );
+      const existingRaffleNumbers = (await prisma.user.findMany({
+        where: { raffleNumbers: { isEmpty: false } },
+        select: { raffleNumbers: true }
+      })).flatMap((user2) => user2.raffleNumbers);
+      const availableRaffleNumbers = allRaffleNumbers.filter(
+        (number) => !existingRaffleNumbers.includes(number)
+      );
+      if (availableRaffleNumbers.length < cantidadRifas) {
+        return new Response(
+          JSON.stringify({
+            message: "No hay suficientes números de rifa disponibles."
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" }
+          }
+        );
+      }
+      for (let i = 0; i < cantidadRifas; i++) {
+        const randomIndex = Math.floor(
+          Math.random() * availableRaffleNumbers.length
+        );
+        const selectedNumber = availableRaffleNumbers.splice(randomIndex, 1)[0];
+        selectedRaffleNumbers.push(selectedNumber);
+      }
+    } else {
+      return new Response(JSON.stringify({ message: "Debe proporcionar cantidadRifas o raffleNumbers." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
     }
     const user = await prisma.user.findUnique({
       where: { id: userId }
@@ -48,21 +91,40 @@ const POST = async ({ request, cookies }) => {
         }
       );
     }
-    const cantidadRifas = 2;
-    const token = generateToken();
-    const raffleLink = `${process.env.NODE_ENV === "production" ? "https://" + process.env.VERCEL_URL : "http://localhost:4321"}/seleccionar-rifas?email=${encodeURIComponent(user.email)}&cantidad=${cantidadRifas}&token=${token}`;
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        raffleNumbers: {
+          push: selectedRaffleNumbers
+        },
+        status: "raffle_numbers_assigned"
+      }
+    });
+    try {
+      await updatedUser;
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      return new Response(
+        JSON.stringify({
+          message: "Error al actualizar el estado del usuario."
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
     const mailOptions = {
       from: process.env.GMAIL_APP_USER,
       to: user.email,
       subject: "¡Tus números de rifa!",
       html: `
-            <p>¡Hola!</p>
-            <p>Estos son tus números de rifa: <strong>${user.raffleNumbers.join(", ")}</strong></p>
-            <p>Para seleccionar tus números de rifa, haz clic en este enlace:</p>
-            <p><a href="${raffleLink}">Seleccionar Rifas</a></p>
-            <p>¡Mucha suerte!</p>
-            <p>Atentamente,<br>El equipo de Rifa Grisha</p>
-            `
+              <p>¡Hola!</p>
+              <p>Estos son tus números de rifa: <strong>${selectedRaffleNumbers.join(", ")}</strong></p>
+              <p>Para seleccionar tus números de rifa, haz clic en este enlace:</p>
+              <p>¡Mucha suerte!</p>
+              <p>Atentamente,<br>El equipo de Rifa Grisha</p>
+              `
     };
     try {
       const transporter = nodemailer.createTransport({
