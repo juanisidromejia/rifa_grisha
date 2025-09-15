@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import nodemailer from "nodemailer";
 import type { APIContext } from "astro";
 import crypto from "crypto";
 
@@ -44,8 +43,7 @@ export const POST = async ({ request, cookies }: APIContext) => {
       !userId ||
       !cantidadRifas ||
       isNaN(Number(cantidadRifas)) ||
-      Number(cantidadRifas) <= 0 ||
-      Number(cantidadRifas) % 2 !== 0
+      Number(cantidadRifas) <= 0
     ) {
       return new Response(JSON.stringify({ message: "Datos inválidos." }), {
         status: 400,
@@ -70,20 +68,16 @@ export const POST = async ({ request, cookies }: APIContext) => {
       );
     }
 
-    // Generate a pool of available raffle numbers (001-999)
+    // 4. Generate Raffle Numbers
     const allRaffleNumbers = Array.from({ length: 999 }, (_, i) =>
       String(i + 1).padStart(3, "0"),
     );
-
-    // Get the raffle numbers already assigned
     const existingRaffleNumbers = (
       await prisma.user.findMany({
         where: { raffleNumbers: { not: { equals: [] } } },
         select: { raffleNumbers: true },
       })
     ).flatMap((user) => user.raffleNumbers);
-
-    // Filter out assigned numbers
     const availableRaffleNumbers = allRaffleNumbers.filter(
       (number) => !existingRaffleNumbers.includes(number),
     );
@@ -100,39 +94,38 @@ export const POST = async ({ request, cookies }: APIContext) => {
       );
     }
 
-    // Select random raffle numbers
     const selectedRaffleNumbers = [];
     for (let i = 0; i < cantidadRifas; i++) {
       const randomIndex = Math.floor(
         Math.random() * availableRaffleNumbers.length,
       );
-      const selectedNumber = availableRaffleNumbers.splice(randomIndex, 1)[0]; // Remove selected number
+      const selectedNumber = availableRaffleNumbers.splice(randomIndex, 1)[0];
       selectedRaffleNumbers.push(selectedNumber);
     }
 
-    // Update the user with the selected raffle numbers and the status to raffle_numbers_assigned
+    // 5. Update User with Raffle Numbers and Status
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         raffleNumbers: selectedRaffleNumbers,
-        status: "raffle_numbers_assigned",
+        status: "raffle_link_sent", // Updated to 'raffle_link_sent'
       },
     });
 
-    // 4. Build the Email Body
+    // 6. Build the Email Body
     const mailOptions = {
       from: process.env.GMAIL_APP_USER,
       to: user.email,
       subject: "¡Tus números de rifa!",
       html: `
-              <p>¡Hola!</p>
-              <p>Estos son tus números de rifa: <strong>${selectedRaffleNumbers.join(", ")}</strong></p>
-              <p>¡Mucha suerte!</p>
-              <p>Atentamente,<br>El equipo de Rifa Grisha</p>
-              `,
+            <p>¡Hola!</p>
+            <p>Estos son tus números de rifa: <strong>${selectedRaffleNumbers.join(", ")}</strong></p>
+            <p>¡Mucha suerte!</p>
+            <p>Atentamente,<br>El equipo de Rifa Grisha</p>
+            `,
     };
 
-    // 5. Send the email using Nodemailer
+    // 7. Send the email using Nodemailer
     try {
       // Configure Nodemailer transporter (reuse the existing one)
       const transporter = nodemailer.createTransport({
@@ -159,7 +152,10 @@ export const POST = async ({ request, cookies }: APIContext) => {
     }
 
     return new Response(
-      JSON.stringify({ message: "Números de rifa enviados con éxito." }),
+      JSON.stringify({
+        message: "Números de rifa enviados con éxito.",
+        user: updatedUser,
+      }),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },

@@ -87,6 +87,87 @@ if (
             .logout-button:hover {
                 background-color: #c82333;
             }
+            /* Modal Styles */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(2px);
+            }
+            .modal-content {
+                background-color: #fff;
+                margin: 20% auto;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                width: 90%;
+                max-width: 400px;
+                position: relative;
+                text-align: center;
+            }
+            .close-button {
+                position: absolute;
+                top: 10px;
+                right: 15px;
+                color: #aaa;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .close-button:hover {
+                color: #000;
+            }
+            .modal-content h3 {
+                margin-bottom: 15px;
+                font-size: 1.5rem;
+            }
+            .modal-content h3.error-title {
+                color: #dc3545;
+            }
+            .modal-content h3.success-title {
+                color: #28a745;
+            }
+            .modal-content h3.info-title {
+                color: #007bff;
+            }
+            .modal-content p {
+                margin-bottom: 20px;
+                line-height: 1.5;
+                color: #333;
+            }
+            .modal-close-btn {
+                background-color: #dc3545;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: background-color 0.3s;
+            }
+            .modal-close-btn:hover {
+                background-color: #c82333;
+            }
+            /* Mobile responsiveness */
+            @media (max-width: 480px) {
+                .modal-content {
+                    margin: 30% auto;
+                    padding: 15px;
+                    width: 95%;
+                }
+                .modal-content h3 {
+                    font-size: 1.3rem;
+                }
+                .modal-close-btn {
+                    padding: 12px 25px;
+                    font-size: 1.1rem;
+                }
+            }
             /* Login form styles (these will primarily be in admin/login.astro) */
             .login-container {
                 max-width: 400px;
@@ -188,12 +269,139 @@ if (
             </section>
 
             <section class="dashboard-section">
-                <h2>Estadísticas Rápidas</h2>
-                <p>Número total de registros, verificados, pagos, etc.</p>
+                <h2>Asignar Números de Rifa</h2>
+                <form id="assign-raffle-numbers-form">
+                    <label for="user-select">Seleccionar Usuario:</label>
+                    <select id="user-select" name="userId" required>
+                        <option value="">Selecciona un usuario</option>
+                        <!-- Los usuarios se cargarán aquí -->
+                    </select>
+                    <div>
+                        <label>
+                            <input type="radio" name="assignmentType" value="random" checked> Asignación Aleatoria
+                        </label>
+                        <label>
+                            <input type="radio" name="assignmentType" value="manual"> Asignación Manual
+                        </label>
+                    </div>
+                    <div id="random-options">
+                        <label for="cantidadRifas">Cantidad de Rifas:</label>
+                        <input
+                            type="number"
+                            id="cantidadRifas"
+                            name="cantidadRifas"
+                            min="1"
+                            placeholder="Ej: 2"
+                            required
+                        />
+                    </div>
+                    <div id="manual-options" style="display: none;">
+                        <label for="raffleNumbers">Números de Rifa (separados por coma):</label>
+                        <input
+                            type="text"
+                            id="raffleNumbers"
+                            name="raffleNumbers"
+                            placeholder="Ej: 001,002,003"
+                        />
+                    </div>
+                    <button type="submit" id="submit-btn">Asignar Números de Rifa</button>
+                </form>
+                <div id="assign-message" class="message" style="display:none;"></div>
+            </section>
+
+            <section class="dashboard-section">
+                <h2>Felicitar Ganador</h2>
+                <form id="congratulate-winner-form">
+                    <label for="winning-number">Número Ganador de Lotería Nacional:</label>
+                    <input
+                        type="text"
+                        id="winning-number"
+                        name="winningNumber"
+                        placeholder="Ej: 1234567890"
+                        required
+                    />
+                    <label for="publication-link">Enlace a la Publicación:</label>
+                    <input
+                        type="url"
+                        id="publication-link"
+                        name="publicationLink"
+                        placeholder="https://ejemplo.com/publicacion"
+                        required
+                    />
+                    <button type="submit" id="congratulate-btn">Felicitar Ganador</button>
+                </form>
+                <div id="congratulate-message" class="message" style="display:none;"></div>
             </section>
         </main>
-        <script is:inline>
-            const userListBody = document.getElementById("user-list");
+
+        <!-- Message Modal -->
+        <div id="message-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3 id="modal-title">Mensaje</h3>
+                <p id="modal-message"></p>
+                <button id="modal-close-btn" class="modal-close-btn">Aceptar</button>
+            </div>
+        </div>
+        <script is:inline client:load> // Asegúrate de que el script se ejecuta en el cliente
+            const userListBody = document.getElementById('user-list');
+            const userSelect = document.getElementById('user-select');
+            const assignRaffleForm = document.getElementById('assign-raffle-numbers-form');
+            const assignMessage = document.getElementById('assign-message');
+            const submitBtn = document.getElementById('submit-btn');
+            const congratulateWinnerForm = document.getElementById('congratulate-winner-form');
+            const congratulateBtn = document.getElementById('congratulate-btn');
+            const congratulateMessage = document.getElementById('congratulate-message');
+            let isSubmitting = false;
+            const messageModal = document.getElementById('message-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const closeButton = document.querySelector('.close-button');
+            const randomOptions = document.getElementById('random-options');
+            const manualOptions = document.getElementById('manual-options');
+            const cantidadRifasInput = document.getElementById('cantidadRifas');
+            const raffleNumbersInput = document.getElementById('raffleNumbers');
+            const assignmentTypeRadios = document.querySelectorAll('input[name="assignmentType"]');
+
+            // Modal functions
+            function showModal(message, type = 'error') {
+                modalMessage.textContent = message;
+                modalTitle.textContent = type === 'success' ? '¡Excelente!' : type === 'info' ? 'Información' : 'Error';
+                modalTitle.className = type === 'success' ? 'success-title' : type === 'info' ? 'info-title' : 'error-title';
+                messageModal.style.display = 'block';
+            }
+
+            function hideModal() {
+                messageModal.style.display = 'none';
+            }
+
+            // Modal event listeners
+            modalCloseBtn.addEventListener('click', hideModal);
+            closeButton.addEventListener('click', hideModal);
+            window.addEventListener('click', (event) => {
+                if (event.target === messageModal) {
+                    hideModal();
+                }
+            });
+
+            // Handle radio button changes
+            assignmentTypeRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const value = e.target.value;
+                    if (value === 'random') {
+                        randomOptions.style.display = 'block';
+                        manualOptions.style.display = 'none';
+                        cantidadRifasInput.required = true;
+                        raffleNumbersInput.required = false;
+                    } else {
+                        randomOptions.style.display = 'none';
+                        manualOptions.style.display = 'block';
+                        cantidadRifasInput.required = false;
+                        raffleNumbersInput.required = true;
+                    }
+                });
+            });
 
             // Function to load users from API
             async function loadUsers() {
@@ -211,6 +419,7 @@ if (
                     const users = await response.json();
 
                     userListBody.innerHTML = ""; // Clear existing rows
+                    userSelect.innerHTML = '<option value="">Selecciona un usuario</option>'; // Reset user select
 
                     users.forEach((user) => {
                         const row = userListBody.insertRow();
@@ -240,17 +449,23 @@ if (
                         });
                         actionsCell.appendChild(confirmButton);
 
-                        // Send Raffle Link Button // ADD FROM HERE
-                        const sendRaffleLinkButton =
+                        // Assign Raffle Button
+                        const assignRaffleButton =
                             document.createElement("button");
-                        sendRaffleLinkButton.textContent = "Enviar Rifas";
-                        sendRaffleLinkButton.className = "send";
-                        sendRaffleLinkButton.dataset.userId = user.id;
-                        sendRaffleLinkButton.addEventListener("click", () => {
-                            // Add this, with the user.id
-                            sendRaffleNumbers(user.id); // Call with the userId
+                        assignRaffleButton.textContent = "Asignar Rifas";
+                        assignRaffleButton.className = "send";
+                        assignRaffleButton.dataset.userId = user.id;
+                        assignRaffleButton.addEventListener("click", () => {
+                            userSelect.value = user.id;
+                            assignRaffleForm.style.display = 'block'; // Show the form
                         });
-                        actionsCell.appendChild(sendRaffleLinkButton);
+                        actionsCell.appendChild(assignRaffleButton);
+
+                        // Add option to user select
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.email;
+                        userSelect.appendChild(option);
                     });
                 } catch (error) {
                     console.error("Error al cargar usuarios:", error);
@@ -273,99 +488,185 @@ if (
                     const data = await response.json();
 
                     if (response.ok) {
-                        alert("Pago confirmado con éxito.");
+                        showModal("Pago confirmado con éxito.", "success");
                         // Refresh user list after confirming payment.
                         loadUsers();
                     } else {
-                        alert("Error al confirmar el pago.");
+                        showModal("Error al confirmar el pago.", "error");
                     }
                 } catch (error) {
                     console.error("Error confirming payment:", error);
-                    alert("Ocurrió un error al confirmar el pago.");
+                    showModal("Ocurrió un error al confirmar el pago.", "error");
                 }
             }
 
             // Function to send raffle numbers
-            async function sendRaffleNumbers(userId) {
-                const cantidadRifas = prompt(
-                    "Ingresa la cantidad de rifas a enviar:",
-                    "2",
-                );
-                if (
-                    cantidadRifas !== null &&
-                    !isNaN(Number(cantidadRifas)) &&
-                    Number(cantidadRifas) > 0
-                ) {
-                    try {
-                        const response = await fetch(
-                            "/api/admin/send-raffles",
-                            {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    userId,
-                                    cantidadRifas: parseInt(cantidadRifas, 10),
-                                }), // Include cantidadRifas
-                            },
-                        );
+            async function sendRaffleNumbers(userId, cantidadRifas) {
+                try {
+                    const response = await fetch("/api/admin/send-raffles", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ userId, cantidadRifas: parseInt(cantidadRifas, 10) }),
+                    });
 
-                        const data = await response.json();
+                    const data = await response.json();
 
-                        if (response.ok) {
-                            alert("Números de rifa enviados con éxito.");
-                            // Puedes agregar lógica para actualizar el estado del usuario o mostrar un mensaje.
-                        } else {
-                            alert("Error al enviar los números de rifa.");
-                        }
-                    } catch (error) {
-                        console.error(
-                            "Error al enviar los números de rifa:",
-                            error,
-                        );
-                        alert(
-                            "Ocurrió un error al enviar los números de rifa.",
-                        );
+                    if (response.ok) {
+                        showModal("Números de rifa enviados con éxito.", "success");
+                        loadUsers();
+                        return { success: true };
+                    } else {
+                        return { success: false, message: data.message || "Error al enviar los números de rifa." };
                     }
-                } else {
-                    alert(
-                        "Por favor, ingresa una cantidad válida de rifas (múltiplo de 2).",
-                    );
+                } catch (error) {
+                    console.error("Error sending raffle numbers:", error);
+                    return { success: false, message: "Error de conexión al enviar los números de rifa." };
                 }
             }
 
-            // Logout function
-            document
-                .getElementById("logout-button")
-                .addEventListener("click", async () => {
-                    try {
-                        const response = await fetch("/api/admin/logout", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                        });
+            // Function to send manual raffle numbers
+            async function sendRaffleNumbersManual(userId, raffleNumbers) {
+                try {
+                    const response = await fetch("/api/admin/send-raffles", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ userId, raffleNumbers }),
+                    });
 
-                        const data = await response.json();
+                    const data = await response.json();
 
-                        if (response.ok && data.success) {
-                            alert(data.message || "Sesión cerrada.");
-                            window.location.href = "/admin/login";
-                        } else {
-                            alert(data.message || "Error al cerrar sesión.");
-                        }
-                    } catch (error) {
-                        console.error(
-                            "Error al intentar cerrar sesión:",
-                            error,
-                        );
-                        alert("Ocurrió un error de conexión al cerrar sesión.");
+                    if (response.ok) {
+                        showModal("Números de rifa asignados con éxito.", "success");
+                        loadUsers();
+                        return { success: true };
+                    } else {
+                        return { success: false, message: data.message || "Error al asignar los números de rifa." };
                     }
-                });
+                } catch (error) {
+                    console.error("Error sending manual raffle numbers:", error);
+                    return { success: false, message: "Error de conexión al asignar los números de rifa." };
+                }
+            }
+
+            // Handle assign raffle form submission
+            assignRaffleForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (isSubmitting) return;
+                isSubmitting = true;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Asignando...';
+                const userId = userSelect.value;
+                const assignmentType = document.querySelector('input[name="assignmentType"]:checked').value;
+                if (!userId) {
+                    showModal("Por favor, selecciona un usuario.", "error");
+                    isSubmitting = false;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Asignar Números de Rifa';
+                    return;
+                }
+                try {
+                    if (assignmentType === 'random') {
+                        const cantidadRifas = cantidadRifasInput.value;
+                        if (cantidadRifas) {
+                            const result = await sendRaffleNumbers(userId, cantidadRifas);
+                            if (!result.success) {
+                                showModal(result.message, "error");
+                            }
+                        } else {
+                            showModal("Por favor, ingresa la cantidad de rifas.", "error");
+                        }
+                    } else {
+                        const raffleNumbersStr = raffleNumbersInput.value;
+                        if (raffleNumbersStr) {
+                            const raffleNumbers = raffleNumbersStr.split(',').map(num => num.trim().padStart(3, '0'));
+                            const result = await sendRaffleNumbersManual(userId, raffleNumbers);
+                            if (!result.success) {
+                                showModal(result.message, "error");
+                            }
+                        } else {
+                            showModal("Por favor, ingresa los números de rifa.", "error");
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error in form submission:", error);
+                    showModal("Ocurrió un error inesperado.", "error");
+                } finally {
+                    isSubmitting = false;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Asignar Números de Rifa';
+                }
+            });
+
+            // Handle congratulate winner form submission
+            congratulateWinnerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (isSubmitting) return;
+                isSubmitting = true;
+                congratulateBtn.disabled = true;
+                congratulateBtn.textContent = 'Felicitando...';
+                const winningNumber = document.getElementById('winning-number').value.trim();
+                const publicationLink = document.getElementById('publication-link').value.trim();
+                if (!winningNumber || !publicationLink) {
+                    showModal("Por favor, ingresa el número ganador y el enlace.", "error");
+                    isSubmitting = false;
+                    congratulateBtn.disabled = false;
+                    congratulateBtn.textContent = 'Felicitar Ganador';
+                    return;
+                }
+                try {
+                    const response = await fetch("/api/admin/congratulate-winner", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ winningNumber, publicationLink }),
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        showModal("Ganador felicitado con éxito.", "success");
+                    } else {
+                        showModal(data.message || "Error al felicitar al ganador.", "error");
+                    }
+                } catch (error) {
+                    console.error("Error congratulating winner:", error);
+                    showModal("Ocurrió un error al felicitar al ganador.", "error");
+                } finally {
+                    isSubmitting = false;
+                    congratulateBtn.disabled = false;
+                    congratulateBtn.textContent = 'Felicitar Ganador';
+                }
+            });
+
+            // Logout function
+            document.getElementById('logout-button').addEventListener('click', async () => {
+                try {
+                    const response = await fetch("/api/admin/logout", {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        showModal(data.message || "Sesión cerrada.", "success");
+                        window.location.href = "/admin/login";
+                    } else {
+                        showModal(data.message || "Error al cerrar sesión.", "error");
+                    }
+                } catch (error) {
+                    console.error("Error al cerrar sesión:", error);
+                    showModal("Error al cerrar sesión.", "error");
+                }
+            });
 
             // Load users on page load
-            document.addEventListener("DOMContentLoaded", loadUsers);
+            document.addEventListener('DOMContentLoaded', loadUsers);
         </script>
     </body>
 </html>

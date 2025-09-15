@@ -38,15 +38,77 @@ export const POST = async ({ request, cookies }: APIContext) => {
     }
 
     // 2. Parse Request Body
-    const { userId, cantidadRifas } = await request.json(); // Added this line
+    const { userId, cantidadRifas, raffleNumbers } = await request.json();
 
-    if (
-      !userId ||
-      !cantidadRifas ||
-      isNaN(Number(cantidadRifas)) ||
-      Number(cantidadRifas) <= 0
-    ) {
-      return new Response(JSON.stringify({ message: "Datos inválidos." }), {
+    if (!userId) {
+      return new Response(JSON.stringify({ message: "Usuario requerido." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    let selectedRaffleNumbers: string[] = [];
+
+    if (raffleNumbers && Array.isArray(raffleNumbers)) {
+      // Manual assignment
+      selectedRaffleNumbers = raffleNumbers.map((num: any) => String(num).padStart(3, "0"));
+      // Validate that numbers are available
+      const existingRaffleNumbers = (
+        await prisma.user.findMany({
+          where: { raffleNumbers: { isEmpty: false } },
+          select: { raffleNumbers: true },
+        })
+      ).flatMap((user) => user.raffleNumbers);
+
+      const unavailable = selectedRaffleNumbers.filter(num => existingRaffleNumbers.includes(num));
+      if (unavailable.length > 0) {
+        return new Response(JSON.stringify({ message: `Números no disponibles: ${unavailable.join(", ")}` }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    } else if (cantidadRifas && !isNaN(Number(cantidadRifas)) && Number(cantidadRifas) > 0) {
+      // Random assignment
+      // Generate a pool of available raffle numbers (001-999)
+      const allRaffleNumbers = Array.from({ length: 999 }, (_, i) =>
+        String(i + 1).padStart(3, "0"),
+      );
+
+      // Get the raffle numbers already assigned
+      const existingRaffleNumbers = (
+        await prisma.user.findMany({
+          where: { raffleNumbers: { isEmpty: false } },
+          select: { raffleNumbers: true },
+        })
+      ).flatMap((user) => user.raffleNumbers);
+
+      // Filter out assigned numbers
+      const availableRaffleNumbers = allRaffleNumbers.filter(
+        (number) => !existingRaffleNumbers.includes(number),
+      );
+
+      if (availableRaffleNumbers.length < cantidadRifas) {
+        return new Response(
+          JSON.stringify({
+            message: "No hay suficientes números de rifa disponibles.",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      // Select random raffle numbers
+      for (let i = 0; i < cantidadRifas; i++) {
+        const randomIndex = Math.floor(
+          Math.random() * availableRaffleNumbers.length,
+        );
+        const selectedNumber = availableRaffleNumbers.splice(randomIndex, 1)[0];
+        selectedRaffleNumbers.push(selectedNumber);
+      }
+    } else {
+      return new Response(JSON.stringify({ message: "Debe proporcionar cantidadRifas o raffleNumbers." }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
@@ -69,9 +131,33 @@ export const POST = async ({ request, cookies }: APIContext) => {
       );
     }
 
-    // Generate the raffle link (with email, cantidad, and token)
-    const token = generateToken(); // Genera un token único
-    const raffleLink = `${process.env.NODE_ENV === "production" ? "https://" + process.env.VERCEL_URL : "http://localhost:4321"}/seleccionar-rifas?email=${encodeURIComponent(user.email)}&cantidad=${cantidadRifas}&token=${token}`;
+
+    // Update the user with the selected raffle numbers and the status to raffle_numbers_assigned
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        raffleNumbers: {
+          push: selectedRaffleNumbers
+        },
+        status: "raffle_numbers_assigned",
+      },
+    });
+
+    try {
+      // Wait for the database update to complete
+      await updatedUser; // Wait for the DB update
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      return new Response(
+        JSON.stringify({
+          message: "Error al actualizar el estado del usuario.",
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
 
     // 4. Build the Email Body
     const mailOptions = {
@@ -79,13 +165,12 @@ export const POST = async ({ request, cookies }: APIContext) => {
       to: user.email,
       subject: "¡Tus números de rifa!",
       html: `
-            <p>¡Hola!</p>
-            <p>Estos son tus números de rifa: <strong>${user.raffleNumbers.join(", ")}</strong></p>
-
-            <p>Esperaos que tengas suerte y te lleves la guitarra</p>
-            <p>¡Gracias por colaborar con nuestra causa!</p>
-            <p>Atentamente,<br>El equipo de Rifa Grisha</p>
-            `,
+              <p>¡Hola!</p>
+              <p>Estos son tus números de rifa: <strong>${selectedRaffleNumbers.join(", ")}</strong></p>
+              <p>Para seleccionar tus números de rifa, haz clic en este enlace:</p>
+              <p>¡Mucha suerte!</p>
+              <p>Atentamente,<br>El equipo de Rifa Grisha</p>
+              `,
     };
 
     // 5. Send the email using Nodemailer
@@ -115,9 +200,7 @@ export const POST = async ({ request, cookies }: APIContext) => {
     }
 
     return new Response(
-      JSON.stringify({
-        message: "Los números de rifa fueron  enviados con éxito.",
-      }),
+      JSON.stringify({ message: "Números de rifa enviados con éxito." }),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
