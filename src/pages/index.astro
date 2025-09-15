@@ -1,13 +1,14 @@
 ---
 import HeaderGrisha from "../components/HeaderGrisha.astro";
 import RaffleDetails from "../components/RaffleDetails.astro";
+import VideoEmbed from "../components/VideoEmbed.astro";
 import RafflePurchase from "../components/RafflePurchase.astro";
 ---
 
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.jpeg" />
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
         <title>Rifa Grisha - Regístrate</title>
@@ -122,6 +123,10 @@ import RafflePurchase from "../components/RafflePurchase.astro";
         <HeaderGrisha />
         <main>
             <RaffleDetails />
+            <VideoEmbed
+                url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                title="Descubre las cualidades de esta increíble guitarra"
+            />
             <RafflePurchase />
 
             <section class="registration-section">
