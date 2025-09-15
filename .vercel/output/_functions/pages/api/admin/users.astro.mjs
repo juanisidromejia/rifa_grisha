@@ -10,6 +10,7 @@ if (process.env.NODE_ENV === "production") {
   }
   prisma = global.prisma;
 }
+const prerender = false;
 const GET = async ({ request, cookies }) => {
   try {
     const isAuthenticated = cookies.has("admin_session");
@@ -55,7 +56,8 @@ const GET = async ({ request, cookies }) => {
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
-  GET
+  GET,
+  prerender
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const page = () => _page;

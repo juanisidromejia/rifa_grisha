@@ -16,6 +16,8 @@ if (process.env.NODE_ENV === "production") {
   prisma = global.prisma;
 }
 
+export const prerender = false;
+
 export const GET = async ({ request, cookies }: APIContext) => {
   try {
     // Verificar autenticación del administrador

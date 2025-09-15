@@ -38,6 +38,8 @@ function imageToBase64(imagePath: string): string {
   }
 }
 
+export const prerender = false;
+
 export const POST = async ({ request }) => {
   try {
     const { email } = await request.json();

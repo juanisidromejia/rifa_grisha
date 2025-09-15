@@ -1,5 +1,7 @@
 import type { APIContext } from "astro";
 
+export const prerender = false;
+
 export const POST = async ({ cookies }: APIContext) => {
   try {
     cookies.delete("admin_session", {

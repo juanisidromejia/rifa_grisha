@@ -1,6 +1,6 @@
 import { renderers } from './renderers.mjs';
-import { c as createExports } from './chunks/entrypoint_DJbHzCaI.mjs';
-import { manifest } from './manifest_CL93134V.mjs';
+import { c as createExports } from './chunks/entrypoint_CtxswEsi.mjs';
+import { manifest } from './manifest_NBPtR9cH.mjs';
 
 const serverIslandMap = new Map();;
 
@@ -55,7 +55,7 @@ const _manifest = Object.assign(manifest, {
     middleware: () => import('./_noop-middleware.mjs')
 });
 const _args = {
-    "middlewareSecret": "5281402c-8662-48c2-8683-4349f1e72616",
+    "middlewareSecret": "8c56f0ef-22d2-47c7-bae6-8a2b11be345f",
     "skewProtection": false
 };
 const _exports = createExports(_manifest, _args);

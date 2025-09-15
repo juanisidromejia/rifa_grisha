@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="en" data-astro-cid-rf56lckb> <head><meta charset="utf-8"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="viewport" content="width=device-width"><meta name="generator" content="Astro v5.12.4"><title>Rifa Grisha - Acceso Administrador</title><style>header[data-astro-cid-q7iteuc3]{background:linear-gradient(135deg,#667eea,#764ba2);padding:1.5rem 1rem;text-align:center;width:100%;box-sizing:border-box}h1[data-astro-cid-q7iteuc3]{color:#fff;margin-top:0;margin-bottom:1rem;font-size:2.5rem;letter-spacing:2px;font-family:sans-serif}.grisha-image[data-astro-cid-q7iteuc3]{width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid #ffffff;box-shadow:0 0 10px #0000004d}.header-message[data-astro-cid-q7iteuc3]{color:#fff;font-size:1.8rem;font-weight:700;margin-top:1.5rem;font-family:sans-serif}
+body{font-family:sans-serif;line-height:1.6;margin:0;padding:0;background-color:#f4f4f4;color:#333}main[data-astro-cid-rf56lckb]{max-width:450px;margin:80px auto;padding:40px;background:#fff;border-radius:12px;box-shadow:0 4px 15px #0000001a;text-align:center}h1[data-astro-cid-rf56lckb]{color:#764ba2;font-size:2.2rem;margin-bottom:30px}form[data-astro-cid-rf56lckb]{display:flex;flex-direction:column;gap:20px;margin-top:30px}label[data-astro-cid-rf56lckb]{text-align:left;font-weight:700;margin-bottom:5px;color:#555}input[data-astro-cid-rf56lckb][type=text],input[data-astro-cid-rf56lckb][type=password]{padding:12px 15px;border:1px solid #ddd;border-radius:6px;width:100%;box-sizing:border-box;font-size:1rem}button[data-astro-cid-rf56lckb]{padding:14px 25px;background-color:#764ba2;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:1.1rem;font-weight:700;transition:background-color .3s ease;margin-top:10px}button[data-astro-cid-rf56lckb]:hover{background-color:#6a3e90}.message[data-astro-cid-rf56lckb]{margin-top:25px;padding:15px;border-radius:8px;font-weight:700;display:none}.message[data-astro-cid-rf56lckb].success{background-color:#d4edda;color:#155724;border:1px solid #c3e6cb}.message[data-astro-cid-rf56lckb].error{background-color:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+</style></head> <body data-astro-cid-rf56lckb> <header data-astro-cid-q7iteuc3> <h1 data-astro-cid-q7iteuc3>Rifa por Grisha</h1> <img src="/img/grisha.jpeg" alt="Foto de Grisha" class="grisha-image" data-astro-cid-q7iteuc3> <p class="header-message" data-astro-cid-q7iteuc3>Juntos haremos la diferencia</p> </header>  <main data-astro-cid-rf56lckb> <h1 data-astro-cid-rf56lckb>Acceso al Panel de Administración</h1> <p data-astro-cid-rf56lckb>Por favor, ingresa tus credenciales.</p> <form id="login-form" data-astro-cid-rf56lckb> <div data-astro-cid-rf56lckb> <label for="username" data-astro-cid-rf56lckb>Usuario:</label> <input type="text" id="username" name="username" required autocomplete="username" data-astro-cid-rf56lckb> </div> <div data-astro-cid-rf56lckb> <label for="password" data-astro-cid-rf56lckb>Contraseña:</label> <input type="password" id="password" name="password" required autocomplete="current-password" data-astro-cid-rf56lckb> </div> <button type="submit" data-astro-cid-rf56lckb>Iniciar Sesión</button> </form> <div id="form-message" class="message" data-astro-cid-rf56lckb></div> </main> <script>
+            document.getElementById('login-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const usernameInput = document.getElementById('username');
+                const passwordInput = document.getElementById('password');
+                const formMessage = document.getElementById('form-message');
+
+                const username = usernameInput.value;
+                const password = passwordInput.value;
+
+                formMessage.style.display = 'none';
+                formMessage.classList.remove('success', 'error');
+                formMessage.textContent = '';
+
+                try {
+                    const response = await fetch('/api/admin/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ username, password }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        formMessage.textContent = data.message || 'Inicio de sesión exitoso.';
+                        formMessage.className = 'message success';
+                        // Redirigir al panel de administración
+                        setTimeout(() => {
+                            window.location.href = '/admin';
+                        }, 1000); // Pequeño retraso antes de redirigir
+                    } else {
+                        formMessage.textContent = data.message || 'Credenciales incorrectas.';
+                        formMessage.className = 'message error';
+                    }
+                } catch (error) {
+                    console.error("Error al iniciar sesión:", error);
+                    formMessage.textContent = "Ocurrió un error de conexión. Inténtalo de nuevo más tarde.";
+                    formMessage.className = 'message error';
+                } finally {
+                    formMessage.style.display = 'block';
+                }
+            });
+        </script> </body> </html>

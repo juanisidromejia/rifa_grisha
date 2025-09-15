@@ -1,3 +1,5 @@
+export const prerender = false;
+
 export const POST = async ({ request, cookies }) => {
   try {
     const { username, password } = await request.json();

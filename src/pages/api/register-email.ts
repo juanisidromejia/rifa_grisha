@@ -31,6 +31,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+export const prerender = false;
+
 export const POST = async ({ request }) => {
   try {
     const { email } = await request.json();

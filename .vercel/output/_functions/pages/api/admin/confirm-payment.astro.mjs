@@ -14,6 +14,7 @@ if (process.env.NODE_ENV === "production") {
 function generateToken(length = 32) {
   return crypto.randomBytes(Math.ceil(length / 2)).toString("hex").slice(0, length);
 }
+const prerender = false;
 const POST = async ({ request, cookies }) => {
   try {
     const isAuthenticated = cookies.has("admin_session");
@@ -81,7 +82,8 @@ const POST = async ({ request, cookies }) => {
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
-  POST
+  POST,
+  prerender
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const page = () => _page;

@@ -25,6 +25,8 @@ function generateToken(length = 32) {
     .slice(0, length);
 }
 
+export const prerender = false;
+
 export const POST = async ({ request, cookies }: APIContext) => {
   try {
     // Verificar autenticación del administrador
