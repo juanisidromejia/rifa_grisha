@@ -1,0 +1,310 @@
+---
+// ImageGallery.astro - Image carousel component for showcasing guitar images
+
+interface Props {
+  images?: string[];
+  title?: string;
+  autoplay?: boolean;
+  interval?: number;
+}
+
+const {
+  images: manualImages = [],
+  title = "Galería de la Guitarra",
+  autoplay = true,
+  interval = 4000
+} = Astro.props;
+
+// Default images from carrousel folder - add your images to assets/carrousel/ folder
+// Any image placed in assets/carrousel/ will automatically appear in the carousel
+const defaultImages = [
+  "/assets/carrousel/guitar-1.jpg",
+  "/assets/carrousel/guitar-2.jpg",
+  "/assets/carrousel/guitar-3.jpg",
+  "/assets/carrousel/guitar-4.jpg"
+];
+
+// Use manual images if provided, otherwise use default images from carrousel folder
+const images = manualImages.length > 0 ? manualImages : defaultImages;
+---
+---
+
+{images.length > 0 && (
+  <div class="image-gallery-container">
+    <h3 class="gallery-title">{title}</h3>
+
+    <div class="carousel-container">
+      <div class="carousel-wrapper" id="carousel-wrapper">
+        {images.map((image, index) => (
+          <div class="carousel-slide" data-slide={index}>
+            <img
+              src={image}
+              alt={`Imagen ${index + 1} de la guitarra`}
+              loading={index === 0 ? "eager" : "lazy"}
+            />
+          </div>
+        ))}
+      </div>
+
+      {images.length > 1 && (
+        <>
+          <button class="carousel-btn prev-btn" id="prev-btn" aria-label="Imagen anterior">
+            &#10094;
+          </button>
+          <button class="carousel-btn next-btn" id="next-btn" aria-label="Imagen siguiente">
+            &#10095;
+          </button>
+
+          <div class="carousel-indicators">
+            {images.map((_, index) => (
+              <button
+                class="indicator"
+                data-slide={index}
+                aria-label={`Ir a imagen ${index + 1}`}
+              ></button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+)}
+
+{images.length === 0 && (
+  <div class="gallery-error">
+    <p>No hay imágenes disponibles para mostrar.</p>
+  </div>
+)}
+
+<style>
+  .image-gallery-container {
+    margin: 30px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .gallery-title {
+    text-align: center;
+    color: #764ba2;
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .carousel-container {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  .carousel-wrapper {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+  }
+
+  .carousel-slide {
+    min-width: 100%;
+    position: relative;
+  }
+
+  .carousel-slide img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    display: block;
+    border-radius: 12px;
+  }
+
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(118, 75, 162, 0.8);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+  }
+
+  .carousel-btn:hover {
+    background: rgba(118, 75, 162, 0.9);
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  .prev-btn {
+    left: 15px;
+  }
+
+  .next-btn {
+    right: 15px;
+  }
+
+  .carousel-indicators {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+  }
+
+  .indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .indicator.active {
+    background: white;
+    transform: scale(1.2);
+  }
+
+  .gallery-error {
+    text-align: center;
+    padding: 40px;
+    background: #f8d7da;
+    color: #721c24;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .image-gallery-container {
+      margin: 20px 0;
+      padding: 15px;
+    }
+
+    .gallery-title {
+      font-size: 1.4rem;
+    }
+
+    .carousel-slide img {
+      height: 300px;
+    }
+
+    .carousel-btn {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .carousel-slide img {
+      height: 250px;
+    }
+
+    .carousel-btn {
+      width: 35px;
+      height: 35px;
+      font-size: 18px;
+    }
+
+    .indicator {
+      width: 10px;
+      height: 10px;
+    }
+  }
+</style>
+
+<script>
+  // Simple carousel functionality
+  function initCarousel(container) {
+    const wrapper = container.querySelector('#carousel-wrapper');
+    const slides = container.querySelectorAll('.carousel-slide');
+    const prevBtn = container.querySelector('#prev-btn');
+    const nextBtn = container.querySelector('#next-btn');
+    const indicators = container.querySelectorAll('.indicator');
+
+    if (slides.length <= 1) return;
+
+    let currentSlide = 0;
+    let autoplayInterval = null;
+    const autoplayDelay = 4000;
+
+    function updateCarousel() {
+      const translateX = -currentSlide * 100;
+      wrapper.style.transform = `translateX(${translateX}%)`;
+      updateIndicators();
+    }
+
+    function updateIndicators() {
+      indicators.forEach((indicator, index) => {
+        if (index === currentSlide) {
+          indicator.classList.add('active');
+        } else {
+          indicator.classList.remove('active');
+        }
+      });
+    }
+
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % slides.length;
+      updateCarousel();
+    }
+
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+      updateCarousel();
+    }
+
+    function goToSlide(index) {
+      currentSlide = index;
+      updateCarousel();
+    }
+
+    function startAutoplay() {
+      stopAutoplay();
+      autoplayInterval = setInterval(nextSlide, autoplayDelay);
+    }
+
+    function stopAutoplay() {
+      if (autoplayInterval) {
+        clearInterval(autoplayInterval);
+        autoplayInterval = null;
+      }
+    }
+
+    // Event listeners
+    if (prevBtn) prevBtn.addEventListener('click', prevSlide);
+    if (nextBtn) nextBtn.addEventListener('click', nextSlide);
+
+    indicators.forEach((indicator, index) => {
+      indicator.addEventListener('click', () => goToSlide(index));
+    });
+
+    // Hover events
+    container.addEventListener('mouseenter', stopAutoplay);
+    container.addEventListener('mouseleave', startAutoplay);
+
+    // Initialize
+    updateIndicators();
+    startAutoplay();
+  }
+
+  // Initialize all carousels
+  document.addEventListener('DOMContentLoaded', () => {
+    const carousels = document.querySelectorAll('.carousel-container');
+    carousels.forEach(container => {
+      initCarousel(container);
+    });
+  });
+</script>
