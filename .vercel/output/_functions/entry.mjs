@@ -1,6 +1,6 @@
 import { renderers } from './renderers.mjs';
 import { c as createExports } from './chunks/entrypoint_CtxswEsi.mjs';
-import { manifest } from './manifest_NBPtR9cH.mjs';
+import { manifest } from './manifest_D-LiOxTF.mjs';
 
 const serverIslandMap = new Map();;
 
@@ -19,11 +19,12 @@ const _page11 = () => import('./pages/api/check-raffle-number.astro.mjs');
 const _page12 = () => import('./pages/api/register-email.astro.mjs');
 const _page13 = () => import('./pages/api/save=raffle-numbers.astro.mjs');
 const _page14 = () => import('./pages/api/send-payment-data.astro.mjs');
-const _page15 = () => import('./pages/api/verify-email.astro.mjs');
-const _page16 = () => import('./pages/payment-instructions.astro.mjs');
-const _page17 = () => import('./pages/seleccionar-rifas.astro.mjs');
-const _page18 = () => import('./pages/verify-email.astro.mjs');
-const _page19 = () => import('./pages/index.astro.mjs');
+const _page15 = () => import('./pages/api/test.astro.mjs');
+const _page16 = () => import('./pages/api/verify-email.astro.mjs');
+const _page17 = () => import('./pages/payment-instructions.astro.mjs');
+const _page18 = () => import('./pages/seleccionar-rifas.astro.mjs');
+const _page19 = () => import('./pages/verify-email.astro.mjs');
+const _page20 = () => import('./pages/index.astro.mjs');
 const pageMap = new Map([
     ["node_modules/astro/dist/assets/endpoint/generic.js", _page0],
     ["src/pages/admin/login.astro", _page1],
@@ -40,11 +41,12 @@ const pageMap = new Map([
     ["src/pages/api/register-email.ts", _page12],
     ["src/pages/api/save=raffle-numbers.ts", _page13],
     ["src/pages/api/send-payment-data.ts", _page14],
-    ["src/pages/api/verify-email.ts", _page15],
-    ["src/pages/payment-instructions.astro", _page16],
-    ["src/pages/seleccionar-rifas.astro", _page17],
-    ["src/pages/verify-email.astro", _page18],
-    ["src/pages/index.astro", _page19]
+    ["src/pages/api/test.ts", _page15],
+    ["src/pages/api/verify-email.ts", _page16],
+    ["src/pages/payment-instructions.astro", _page17],
+    ["src/pages/seleccionar-rifas.astro", _page18],
+    ["src/pages/verify-email.astro", _page19],
+    ["src/pages/index.astro", _page20]
 ]);
 
 const _manifest = Object.assign(manifest, {
@@ -55,7 +57,7 @@ const _manifest = Object.assign(manifest, {
     middleware: () => import('./_noop-middleware.mjs')
 });
 const _args = {
-    "middlewareSecret": "8c56f0ef-22d2-47c7-bae6-8a2b11be345f",
+    "middlewareSecret": "ccec8871-a511-4e05-95cf-c762887ca9b0",
     "skewProtection": false
 };
 const _exports = createExports(_manifest, _args);

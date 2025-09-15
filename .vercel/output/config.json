@@ -58,6 +58,10 @@
 		{
 			"src": "^/api/send-payment-data/?$",
 			"dest": "_render"
+		},
+		{
+			"src": "^/api/test/?$",
+			"dest": "_render"
 		}
 	],
 	"images": {
