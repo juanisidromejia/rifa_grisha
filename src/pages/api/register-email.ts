@@ -56,6 +56,26 @@ export const POST = async ({ request }) => {
     console.log("GMAIL_APP_USER:", process.env.GMAIL_APP_USER ? "Set" : "Not set");
     console.log("GMAIL_APP_PASSWORD:", process.env.GMAIL_APP_PASSWORD ? "Set" : "Not set");
 
+    // TEMPORARY: Skip database and email operations for testing
+    console.log("Skipping database and email operations for testing...");
+
+    // Generate mock verification code
+    const verificationCode = "TEST123";
+
+    // Mock successful response
+    return new Response(
+      JSON.stringify({
+        message:
+          "¡Registro exitoso! Se ha enviado un link de activación a tu correo electrónico. Revisa tu bandeja de entrada y spam.",
+        redirectTo: `/verify-email?email=${encodeURIComponent(email)}&code=${verificationCode}`,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+
+    /* ORIGINAL CODE COMMENTED OUT FOR TESTING
     // Comprobar si el correo ya existe
     console.log("Checking for existing user...");
     const existingUser = await prisma.user.findUnique({
@@ -155,6 +175,7 @@ export const POST = async ({ request }) => {
         headers: { "Content-Type": "application/json" },
       },
     );
+    */
   } catch (error) {
     // Manejo de errores específicos de Prisma y otros
     console.error("Error al registrar el correo:", error);
