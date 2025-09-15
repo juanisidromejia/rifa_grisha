@@ -3,8 +3,11 @@ import vercel from "@astrojs/vercel";
 
 // https://astro.build/config
 export default defineConfig({
-  output: "server", // Add this line to enable server output
-  adapter: vercel(),
+  output: "static", // Changed to static generation
+  adapter: vercel({
+    // Vercel adapter configuration for static output
+    imageService: true,
+  }),
   vite: {
     ssr: {
       external: ["@prisma/client"],
