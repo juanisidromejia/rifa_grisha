@@ -5,27 +5,13 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-let prisma: PrismaClient;
-
-if (!global.prisma) {
-  global.prisma = new PrismaClient();
-}
-prisma = global.prisma;
-
 // Determine the base URL dynamically
 const baseUrl =
   process.env.NODE_ENV === "production"
     ? `https://${process.env.VERCEL_URL}`
     : "http://localhost:4321"; // Default Astro dev server port
 
-// Configurar el transporter de Nodemailer con credenciales de Gmail
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_APP_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
+// Configurar el transporter de Nodemailer con credenciales de Gmail (moved inside function for error handling)
 
 export const prerender = false;
 
@@ -34,6 +20,27 @@ export const POST = async ({ request }) => {
     console.log("API called: register-email");
     console.log("Request method:", request.method);
     console.log("Request headers:", Object.fromEntries(request.headers.entries()));
+
+    // Initialize Prisma client
+    let prisma: PrismaClient;
+    try {
+      if (!global.prisma) {
+        global.prisma = new PrismaClient();
+        console.log("Prisma client created");
+      }
+      prisma = global.prisma;
+    } catch (dbError) {
+      console.error("Error creating Prisma client:", dbError);
+      return new Response(
+        JSON.stringify({
+          message: "Error de conexión a la base de datos. Inténtalo de nuevo más tarde.",
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
 
     const { email } = await request.json();
     console.log("Email received:", email);
@@ -135,7 +142,18 @@ export const POST = async ({ request }) => {
     }
 
     // --- Enviar correo electrónico de verificación (LINK DE UN SOLO CLIC) ---
+    // Configurar el transporter de Nodemailer con credenciales de Gmail
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_APP_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
+    console.log("Transporter created");
+
     try {
+      console.log("About to send email");
       const mailOptions = {
         from: process.env.GMAIL_APP_USER, // Remitente
         to: user.email, // Destinatario
