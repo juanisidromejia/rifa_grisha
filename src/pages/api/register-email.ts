@@ -24,16 +24,20 @@ export const POST = async ({ request }) => {
     // Initialize Prisma client
     let prisma: PrismaClient;
     try {
+      console.log("Attempting to create/connect to database...");
       if (!global.prisma) {
         global.prisma = new PrismaClient();
-        console.log("Prisma client created");
+        console.log("Prisma client created successfully");
       }
       prisma = global.prisma;
+      console.log("Database connection established");
     } catch (dbError) {
       console.error("Error creating Prisma client:", dbError);
+      console.error("Error details:", JSON.stringify(dbError, null, 2));
       return new Response(
         JSON.stringify({
           message: "Error de conexión a la base de datos. Inténtalo de nuevo más tarde.",
+          error: dbError instanceof Error ? dbError.message : String(dbError)
         }),
         {
           status: 500,
@@ -143,6 +147,7 @@ export const POST = async ({ request }) => {
 
     // --- Enviar correo electrónico de verificación (LINK DE UN SOLO CLIC) ---
     // Configurar el transporter de Nodemailer con credenciales de Gmail
+    console.log("Creating email transporter...");
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -150,10 +155,10 @@ export const POST = async ({ request }) => {
         pass: process.env.GMAIL_APP_PASSWORD,
       },
     });
-    console.log("Transporter created");
+    console.log("Email transporter created successfully");
 
     try {
-      console.log("About to send email");
+      console.log("About to send email to:", user.email);
       const mailOptions = {
         from: process.env.GMAIL_APP_USER, // Remitente
         to: user.email, // Destinatario
@@ -177,10 +182,12 @@ export const POST = async ({ request }) => {
       );
     } catch (emailError) {
       console.error(`Error al enviar el correo a ${user.email}:`, emailError);
+      console.error("Email error details:", JSON.stringify(emailError, null, 2));
       return new Response(
         JSON.stringify({
           message:
             "Registro exitoso, pero hubo un problema al enviar el correo de activación. Por favor, intenta de nuevo o contáctanos.",
+          error: emailError instanceof Error ? emailError.message : String(emailError)
         }),
         {
           status: 500,
