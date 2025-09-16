@@ -20,6 +20,14 @@
 			"dest": "_render"
 		},
 		{
+			"src": "^/admin/login/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/?$",
+			"dest": "_render"
+		},
+		{
 			"src": "^/api/admin/assign-raffle-numbers/?$",
 			"dest": "_render"
 		},
@@ -52,7 +60,15 @@
 			"dest": "_render"
 		},
 		{
+			"src": "^/api/check-raffle-number/?$",
+			"dest": "_render"
+		},
+		{
 			"src": "^/api/register-email/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/save=raffle-numbers/?$",
 			"dest": "_render"
 		},
 		{
@@ -61,6 +77,26 @@
 		},
 		{
 			"src": "^/api/test/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/verify-email/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/payment-instructions/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/seleccionar-rifas/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/verify-email/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/$",
 			"dest": "_render"
 		}
 	],

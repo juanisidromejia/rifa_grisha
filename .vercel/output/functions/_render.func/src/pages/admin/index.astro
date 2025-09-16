@@ -1,0 +1,672 @@
+---
+import HeaderGrisha from "../../components/HeaderGrisha.astro";
+
+// Lógica de protección: Si no hay cookie de sesión 'admin_session', redirige al login.
+const isAuthenticated = Astro.cookies.has("admin_session");
+
+// Asegúrate de que esta redirección solo ocurra si se está intentando acceder a /admin directamente.
+// Si ya estás en /admin/login, no deberías redirigir de nuevo.
+if (
+    !isAuthenticated &&
+    Astro.request.url.includes("/admin") &&
+    !Astro.request.url.includes("/admin/login")
+) {
+    return Astro.redirect("/admin/login");
+}
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Rifa Grisha - Panel de Administración</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f4;
+                color: #333;
+            }
+            main {
+                max-width: 900px;
+                margin: 50px auto;
+                padding: 30px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+            h1 {
+                color: #764ba2;
+                font-size: 2.5rem;
+                margin-bottom: 30px;
+            }
+            .dashboard-section {
+                background-color: #eef4f9;
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }
+            .dashboard-section h2 {
+                color: #667eea;
+                margin-bottom: 15px;
+            }
+            .data-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+            }
+            .data-table th,
+            .data-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            .data-table th {
+                background-color: #667eea;
+                color: white;
+            }
+            .data-table tr:nth-child(even) {
+                background-color: #f2f2f2;
+            }
+            .logout-button {
+                background-color: #dc3545;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1rem;
+                margin-top: 20px;
+                float: right;
+            }
+            .logout-button:hover {
+                background-color: #c82333;
+            }
+            /* Modal Styles */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(2px);
+            }
+            .modal-content {
+                background-color: #fff;
+                margin: 20% auto;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                width: 90%;
+                max-width: 400px;
+                position: relative;
+                text-align: center;
+            }
+            .close-button {
+                position: absolute;
+                top: 10px;
+                right: 15px;
+                color: #aaa;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .close-button:hover {
+                color: #000;
+            }
+            .modal-content h3 {
+                margin-bottom: 15px;
+                font-size: 1.5rem;
+            }
+            .modal-content h3.error-title {
+                color: #dc3545;
+            }
+            .modal-content h3.success-title {
+                color: #28a745;
+            }
+            .modal-content h3.info-title {
+                color: #007bff;
+            }
+            .modal-content p {
+                margin-bottom: 20px;
+                line-height: 1.5;
+                color: #333;
+            }
+            .modal-close-btn {
+                background-color: #dc3545;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: background-color 0.3s;
+            }
+            .modal-close-btn:hover {
+                background-color: #c82333;
+            }
+            /* Mobile responsiveness */
+            @media (max-width: 480px) {
+                .modal-content {
+                    margin: 30% auto;
+                    padding: 15px;
+                    width: 95%;
+                }
+                .modal-content h3 {
+                    font-size: 1.3rem;
+                }
+                .modal-close-btn {
+                    padding: 12px 25px;
+                    font-size: 1.1rem;
+                }
+            }
+            /* Login form styles (these will primarily be in admin/login.astro) */
+            .login-container {
+                max-width: 400px;
+                margin: 100px auto;
+                padding: 30px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+            .login-container h2 {
+                color: #764ba2;
+                margin-bottom: 25px;
+            }
+            .login-container form {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+            .login-container input[type="text"],
+            .login-container input[type="password"] {
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+            .login-container button {
+                background-color: #764ba2;
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .login-container button:hover {
+                background-color: #6a3e90;
+            }
+            .login-message {
+                margin-top: 15px;
+                padding: 10px;
+                border-radius: 4px;
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+                display: none;
+            }
+            .action-buttons button {
+                margin-right: 5px; /* Space between buttons */
+                padding: 6px 10px;
+                font-size: 0.9em;
+                border-radius: 4px;
+                cursor: pointer;
+                border: none;
+            }
+            .action-buttons button.confirm {
+                background-color: #28a745; /* Green */
+                color: white;
+            }
+            .action-buttons button.confirm:hover {
+                background-color: #218838;
+            }
+            .action-buttons button.send {
+                background-color: #007bff; /* Blue */
+                color: white;
+            }
+            .action-buttons button.send:hover {
+                background-color: #0056b3;
+            }
+        </style>
+    </head>
+    <body>
+        <HeaderGrisha />
+        <main>
+            <button id="logout-button" class="logout-button"
+                >Cerrar Sesión</button
+            >
+            <h1>Panel de Administración Rifa Grisha</h1>
+
+            <section class="dashboard-section">
+                <h2>Resumen de Registros</h2>
+                <p>
+                    Aquí se mostrará un resumen de los usuarios registrados y su
+                    estado.
+                </p>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Correo</th>
+                            <th>Estado</th>
+                            <th>Números Rifa</th>
+                            <th>Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list">
+                        <!-- Los datos de los usuarios se cargarán aquí -->
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="dashboard-section">
+                <h2>Asignar Números de Rifa</h2>
+                <form id="assign-raffle-numbers-form">
+                    <label for="user-select">Seleccionar Usuario:</label>
+                    <select id="user-select" name="userId" required>
+                        <option value="">Selecciona un usuario</option>
+                        <!-- Los usuarios se cargarán aquí -->
+                    </select>
+                    <div>
+                        <label>
+                            <input type="radio" name="assignmentType" value="random" checked> Asignación Aleatoria
+                        </label>
+                        <label>
+                            <input type="radio" name="assignmentType" value="manual"> Asignación Manual
+                        </label>
+                    </div>
+                    <div id="random-options">
+                        <label for="cantidadRifas">Cantidad de Rifas:</label>
+                        <input
+                            type="number"
+                            id="cantidadRifas"
+                            name="cantidadRifas"
+                            min="1"
+                            placeholder="Ej: 2"
+                            required
+                        />
+                    </div>
+                    <div id="manual-options" style="display: none;">
+                        <label for="raffleNumbers">Números de Rifa (separados por coma):</label>
+                        <input
+                            type="text"
+                            id="raffleNumbers"
+                            name="raffleNumbers"
+                            placeholder="Ej: 001,002,003"
+                        />
+                    </div>
+                    <button type="submit" id="submit-btn">Asignar Números de Rifa</button>
+                </form>
+                <div id="assign-message" class="message" style="display:none;"></div>
+            </section>
+
+            <section class="dashboard-section">
+                <h2>Felicitar Ganador</h2>
+                <form id="congratulate-winner-form">
+                    <label for="winning-number">Número Ganador de Lotería Nacional:</label>
+                    <input
+                        type="text"
+                        id="winning-number"
+                        name="winningNumber"
+                        placeholder="Ej: 1234567890"
+                        required
+                    />
+                    <label for="publication-link">Enlace a la Publicación:</label>
+                    <input
+                        type="url"
+                        id="publication-link"
+                        name="publicationLink"
+                        placeholder="https://ejemplo.com/publicacion"
+                        required
+                    />
+                    <button type="submit" id="congratulate-btn">Felicitar Ganador</button>
+                </form>
+                <div id="congratulate-message" class="message" style="display:none;"></div>
+            </section>
+        </main>
+
+        <!-- Message Modal -->
+        <div id="message-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3 id="modal-title">Mensaje</h3>
+                <p id="modal-message"></p>
+                <button id="modal-close-btn" class="modal-close-btn">Aceptar</button>
+            </div>
+        </div>
+        <script is:inline client:load> // Asegúrate de que el script se ejecuta en el cliente
+            const userListBody = document.getElementById('user-list');
+            const userSelect = document.getElementById('user-select');
+            const assignRaffleForm = document.getElementById('assign-raffle-numbers-form');
+            const assignMessage = document.getElementById('assign-message');
+            const submitBtn = document.getElementById('submit-btn');
+            const congratulateWinnerForm = document.getElementById('congratulate-winner-form');
+            const congratulateBtn = document.getElementById('congratulate-btn');
+            const congratulateMessage = document.getElementById('congratulate-message');
+            let isSubmitting = false;
+            const messageModal = document.getElementById('message-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const closeButton = document.querySelector('.close-button');
+            const randomOptions = document.getElementById('random-options');
+            const manualOptions = document.getElementById('manual-options');
+            const cantidadRifasInput = document.getElementById('cantidadRifas');
+            const raffleNumbersInput = document.getElementById('raffleNumbers');
+            const assignmentTypeRadios = document.querySelectorAll('input[name="assignmentType"]');
+
+            // Modal functions
+            function showModal(message, type = 'error') {
+                modalMessage.textContent = message;
+                modalTitle.textContent = type === 'success' ? '¡Excelente!' : type === 'info' ? 'Información' : 'Error';
+                modalTitle.className = type === 'success' ? 'success-title' : type === 'info' ? 'info-title' : 'error-title';
+                messageModal.style.display = 'block';
+            }
+
+            function hideModal() {
+                messageModal.style.display = 'none';
+            }
+
+            // Modal event listeners
+            modalCloseBtn.addEventListener('click', hideModal);
+            closeButton.addEventListener('click', hideModal);
+            window.addEventListener('click', (event) => {
+                if (event.target === messageModal) {
+                    hideModal();
+                }
+            });
+
+            // Handle radio button changes
+            assignmentTypeRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const value = e.target.value;
+                    if (value === 'random') {
+                        randomOptions.style.display = 'block';
+                        manualOptions.style.display = 'none';
+                        cantidadRifasInput.required = true;
+                        raffleNumbersInput.required = false;
+                    } else {
+                        randomOptions.style.display = 'none';
+                        manualOptions.style.display = 'block';
+                        cantidadRifasInput.required = false;
+                        raffleNumbersInput.required = true;
+                    }
+                });
+            });
+
+            // Function to load users from API
+            async function loadUsers() {
+                try {
+                    const response = await fetch("/api/admin/users");
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            window.location.href = "/admin/login"; // Redirect to login if unauthorized
+                            return;
+                        }
+                        throw new Error(
+                            `HTTP error! status: ${response.status}`,
+                        );
+                    }
+                    const users = await response.json();
+
+                    userListBody.innerHTML = ""; // Clear existing rows
+                    userSelect.innerHTML = '<option value="">Selecciona un usuario</option>'; // Reset user select
+
+                    users.forEach((user) => {
+                        const row = userListBody.insertRow();
+                        row.insertCell().textContent =
+                            user.id.substring(0, 8) + "..."; // Truncate ID
+                        row.insertCell().textContent = user.email;
+                        row.insertCell().textContent = user.status
+                            .replace(/_/g, " ")
+                            .toUpperCase(); // Format status
+                        row.insertCell().textContent =
+                            user.raffleNumbers.length > 0
+                                ? user.raffleNumbers.join(", ")
+                                : "N/A";
+                        row.insertCell().textContent = new Date(
+                            user.createdAt,
+                        ).toLocaleString();
+
+                        const actionsCell = row.insertCell();
+                        actionsCell.className = "action-buttons";
+
+                        // Confirm Payment Button
+                        const confirmButton = document.createElement("button");
+                        confirmButton.textContent = "Confirmar Pago";
+                        confirmButton.className = "confirm";
+                        confirmButton.addEventListener("click", () => {
+                            confirmPayment(user.id); // Call confirmPayment function
+                        });
+                        actionsCell.appendChild(confirmButton);
+
+                        // Assign Raffle Button
+                        const assignRaffleButton =
+                            document.createElement("button");
+                        assignRaffleButton.textContent = "Asignar Rifas";
+                        assignRaffleButton.className = "send";
+                        assignRaffleButton.dataset.userId = user.id;
+                        assignRaffleButton.addEventListener("click", () => {
+                            userSelect.value = user.id;
+                            assignRaffleForm.style.display = 'block'; // Show the form
+                        });
+                        actionsCell.appendChild(assignRaffleButton);
+
+                        // Add option to user select
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.email;
+                        userSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error("Error al cargar usuarios:", error);
+                    userListBody.innerHTML =
+                        '<tr><td colspan="6">Error al cargar usuarios. Por favor, asegúrate de haber iniciado sesión.</td></tr>';
+                }
+            }
+
+            // Function to confirm payment
+            async function confirmPayment(userId) {
+                try {
+                    const response = await fetch("/api/admin/confirm-payment", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ userId }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showModal("Pago confirmado con éxito.", "success");
+                        // Refresh user list after confirming payment.
+                        loadUsers();
+                    } else {
+                        showModal("Error al confirmar el pago.", "error");
+                    }
+                } catch (error) {
+                    console.error("Error confirming payment:", error);
+                    showModal("Ocurrió un error al confirmar el pago.", "error");
+                }
+            }
+
+            // Function to send raffle numbers
+            async function sendRaffleNumbers(userId, cantidadRifas) {
+                try {
+                    const response = await fetch("/api/admin/send-raffles", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ userId, cantidadRifas: parseInt(cantidadRifas, 10) }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showModal("Números de rifa enviados con éxito.", "success");
+                        loadUsers();
+                        return { success: true };
+                    } else {
+                        return { success: false, message: data.message || "Error al enviar los números de rifa." };
+                    }
+                } catch (error) {
+                    console.error("Error sending raffle numbers:", error);
+                    return { success: false, message: "Error de conexión al enviar los números de rifa." };
+                }
+            }
+
+            // Function to send manual raffle numbers
+            async function sendRaffleNumbersManual(userId, raffleNumbers) {
+                try {
+                    const response = await fetch("/api/admin/send-raffles", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ userId, raffleNumbers }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showModal("Números de rifa asignados con éxito.", "success");
+                        loadUsers();
+                        return { success: true };
+                    } else {
+                        return { success: false, message: data.message || "Error al asignar los números de rifa." };
+                    }
+                } catch (error) {
+                    console.error("Error sending manual raffle numbers:", error);
+                    return { success: false, message: "Error de conexión al asignar los números de rifa." };
+                }
+            }
+
+            // Handle assign raffle form submission
+            assignRaffleForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (isSubmitting) return;
+                isSubmitting = true;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Asignando...';
+                const userId = userSelect.value;
+                const assignmentType = document.querySelector('input[name="assignmentType"]:checked').value;
+                if (!userId) {
+                    showModal("Por favor, selecciona un usuario.", "error");
+                    isSubmitting = false;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Asignar Números de Rifa';
+                    return;
+                }
+                try {
+                    if (assignmentType === 'random') {
+                        const cantidadRifas = cantidadRifasInput.value;
+                        if (cantidadRifas) {
+                            const result = await sendRaffleNumbers(userId, cantidadRifas);
+                            if (!result.success) {
+                                showModal(result.message, "error");
+                            }
+                        } else {
+                            showModal("Por favor, ingresa la cantidad de rifas.", "error");
+                        }
+                    } else {
+                        const raffleNumbersStr = raffleNumbersInput.value;
+                        if (raffleNumbersStr) {
+                            const raffleNumbers = raffleNumbersStr.split(',').map(num => num.trim().padStart(3, '0'));
+                            const result = await sendRaffleNumbersManual(userId, raffleNumbers);
+                            if (!result.success) {
+                                showModal(result.message, "error");
+                            }
+                        } else {
+                            showModal("Por favor, ingresa los números de rifa.", "error");
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error in form submission:", error);
+                    showModal("Ocurrió un error inesperado.", "error");
+                } finally {
+                    isSubmitting = false;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Asignar Números de Rifa';
+                }
+            });
+
+            // Handle congratulate winner form submission
+            congratulateWinnerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (isSubmitting) return;
+                isSubmitting = true;
+                congratulateBtn.disabled = true;
+                congratulateBtn.textContent = 'Felicitando...';
+                const winningNumber = document.getElementById('winning-number').value.trim();
+                const publicationLink = document.getElementById('publication-link').value.trim();
+                if (!winningNumber || !publicationLink) {
+                    showModal("Por favor, ingresa el número ganador y el enlace.", "error");
+                    isSubmitting = false;
+                    congratulateBtn.disabled = false;
+                    congratulateBtn.textContent = 'Felicitar Ganador';
+                    return;
+                }
+                try {
+                    const response = await fetch("/api/admin/congratulate-winner", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ winningNumber, publicationLink }),
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        showModal("Ganador felicitado con éxito.", "success");
+                    } else {
+                        showModal(data.message || "Error al felicitar al ganador.", "error");
+                    }
+                } catch (error) {
+                    console.error("Error congratulating winner:", error);
+                    showModal("Ocurrió un error al felicitar al ganador.", "error");
+                } finally {
+                    isSubmitting = false;
+                    congratulateBtn.disabled = false;
+                    congratulateBtn.textContent = 'Felicitar Ganador';
+                }
+            });
+
+            // Logout function
+            document.getElementById('logout-button').addEventListener('click', async () => {
+                try {
+                    const response = await fetch("/api/admin/logout", {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        showModal(data.message || "Sesión cerrada.", "success");
+                        window.location.href = "/admin/login";
+                    } else {
+                        showModal(data.message || "Error al cerrar sesión.", "error");
+                    }
+                } catch (error) {
+                    console.error("Error al cerrar sesión:", error);
+                    showModal("Error al cerrar sesión.", "error");
+                }
+            });
+
+            // Load users on page load
+            document.addEventListener('DOMContentLoaded', loadUsers);
+        </script>
+    </body>
+</html>

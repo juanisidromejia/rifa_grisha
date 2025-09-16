@@ -3,9 +3,9 @@ import vercel from "@astrojs/vercel";
 
 // https://astro.build/config
 export default defineConfig({
-  output: "static", // Changed to static generation
+  output: "server", // Changed to server-side rendering for API routes
   adapter: vercel({
-    // Vercel adapter configuration for static output
+    // Vercel adapter configuration for server output
     imageService: true,
   }),
   vite: {
