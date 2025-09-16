@@ -1,4 +1,6 @@
-export const POST = async ({ request, cookies }) => {
+import type { APIContext } from "astro";
+
+export const POST = async ({ request, cookies }: APIContext) => {
   try {
     const { username, password } = await request.json();
 
