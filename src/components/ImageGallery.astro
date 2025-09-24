@@ -1,0 +1,210 @@
+
+---
+// ImageGallery.astro - Carrusel automático de imágenes
+import { getImageFiles } from '../utils/imageUtils.ts';
+
+interface Props {
+  folder?: string;
+  alt?: string;
+}
+
+const { folder = 'guitar', alt = "Imagen de la guitarra" } = Astro.props;
+
+// Obtener imágenes automáticamente de la carpeta
+const images = await getImageFiles(folder);
+---
+
+{images.length > 0 && (
+  <div class="image-gallery">
+    <h3 style="text-align: center; color: #764ba2; margin-bottom: 20px;">
+      ¡Mira la Guitarra que Puedes Ganar!
+    </h3>
+
+    <div class="gallery-container">
+      {images.map((image, index) => (
+        <img
+          src={image}
+          alt={`${alt} ${index + 1}`}
+          class="gallery-image"
+          loading="lazy"
+        />
+      ))}
+    </div>
+
+    <div class="gallery-navigation">
+      <button class="nav-btn prev-btn" aria-label="Imagen anterior">‹</button>
+      <div class="gallery-dots">
+        {images.map((_, index) => (
+          <span class="dot" data-slide={index}></span>
+        ))}
+      </div>
+      <button class="nav-btn next-btn" aria-label="Imagen siguiente">›</button>
+    </div>
+  </div>
+)}
+
+{images.length === 0 && (
+  <div style="text-align: center; padding: 20px; background-color: #f8f7fa; border-radius: 8px; margin: 20px 0;">
+    <p>📸 Próximamente: Galería de imágenes de la guitarra</p>
+  </div>
+)}
+
+<style>
+  .image-gallery {
+    max-width: 800px;
+    margin: 30px auto;
+    position: relative;
+  }
+
+  .gallery-container {
+    display: flex;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .gallery-image {
+    flex: 0 0 100%;
+    height: 400px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .gallery-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+  }
+
+  .nav-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .nav-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .gallery-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ddd;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .dot.active {
+    background-color: #667eea;
+    transform: scale(1.2);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .gallery-image {
+      height: 300px;
+    }
+
+    .nav-btn {
+      width: 35px;
+      height: 35px;
+      font-size: 16px;
+    }
+  }
+</style>
+
+<script>
+  class ImageGallery {
+    constructor(container) {
+      this.container = container;
+      this.images = container.querySelectorAll('.gallery-image');
+      this.dots = container.querySelectorAll('.dot');
+      this.prevBtn = container.querySelector('.prev-btn');
+      this.nextBtn = container.querySelector('.next-btn');
+      this.currentIndex = 0;
+      this.autoplayInterval = null;
+
+      this.init();
+    }
+
+    init() {
+      this.updateDisplay();
+      this.bindEvents();
+      this.startAutoplay();
+    }
+
+    bindEvents() {
+      this.prevBtn?.addEventListener('click', () => this.prev());
+      this.nextBtn?.addEventListener('click', () => this.next());
+
+      this.dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => this.goToSlide(index));
+      });
+
+      // Pausar autoplay en hover
+      this.container.addEventListener('mouseenter', () => this.stopAutoplay());
+      this.container.addEventListener('mouseleave', () => this.startAutoplay());
+    }
+
+    updateDisplay() {
+      this.images.forEach((img, index) => {
+        img.style.transform = `translateX(${(index - this.currentIndex) * 100}%)`;
+      });
+
+      this.dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === this.currentIndex);
+      });
+    }
+
+    next() {
+      this.currentIndex = (this.currentIndex + 1) % this.images.length;
+      this.updateDisplay();
+    }
+
+    prev() {
+      this.currentIndex = (this.currentIndex - 1 + this.images.length) % this.images.length;
+      this.updateDisplay();
+    }
+
+    goToSlide(index) {
+      this.currentIndex = index;
+      this.updateDisplay();
+    }
+
+    startAutoplay() {
+      this.stopAutoplay();
+      this.autoplayInterval = setInterval(() => this.next(), 4000);
+    }
+
+    stopAutoplay() {
+      if (this.autoplayInterval) {
+        clearInterval(this.autoplayInterval);
+        this.autoplayInterval = null;
+      }
+    }
+  }
+
+  // Inicializar todas las galerías
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.image-gallery').forEach(gallery => {
+      new ImageGallery(gallery);
+    });
+  });
+</script>

@@ -26,3 +26,7 @@ pnpm-debug.log*
 /src/generated/prisma
 # Agents
 AGENTS.md
+
+#archivos sensibles de vercel
+
+.vercel/
